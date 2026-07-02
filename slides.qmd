@@ -1,0 +1,1054 @@
+---
+title: "Interactive Graphics for Understanding and Interpreting Nonlinear Model Behaviour in High Dimensions, using R"
+author: "Dianne Cook <br> Monash University"
+format: 
+  revealjs:
+    multiplex: false
+    slide-number: c/t
+    slide-tone: false
+    theme: "custom.scss"
+    chalkboard: false
+    code-fold: true
+    highlight-style: github
+    footer: "[https://github.com/dicook/useR-2026/](https://github.com/dicook/useR-2026/)"
+    width: 1600
+    height: 900
+    margin: 0.05
+    embed-resources: true
+filters:
+  - more-fragments
+  - roughnotation
+---
+
+```{r, include = FALSE}
+source("setup.R")
+```
+
+## Some history from 2007
+
+::: {.panel-tabset}
+
+## data
+
+:::: {.columns}
+::: {.column width="50%"}
+
+
+<div class="antique-frame">
+  <img class="photo" src="images/wiggly.png">
+  <img class="frame" src="images/antique-frame.png">
+</div>
+
+<!-- ![](images/wiggly.png){width="600px"}-->
+
+:::
+::: {.column width="50%"}
+
+The `wiggly` data. 
+
+<br>
+
+How many linear splits do you need to best separate the two groups?
+
+<br>
+<br>
+
+
+::: {.f60}
+Wickham et al (2015) Removing the Blindfold [https://doi.org/10.1002/sam.11271](https://doi.org/10.1002/sam.11271)
+:::
+
+:::
+::::
+
+
+## fit
+
+:::: {.columns}
+::: {.column width="30%"}
+
+- 600 models 
+- three architectures: 2, 3, 4 modes in hidden layer
+- many random starts
+
+:::
+::: {.column width="70%"}
+
+![](images/wiggly-nnet.png){width="1000px"}
+
+:::
+::::
+
+## models
+
+:::: {.columns}
+::: {.column width="60%"}
+
+![](images/wiggly-models.png){width="1000px"}
+:::
+::: {.column width="40%"}
+
+- Only with 4 nodes do we get a handful of adequate models.
+- Many fits with 4 nodes are still sub-optimal.
+
+:::
+::::
+
+## learn
+
+- A simple parsimonious model is possible, with the right choice of random seed.
+- In a more complex architecture, most nodes are indolent. 
+
+We need to know what the data looks like to inform the architecture.
+
+:::
+
+## Fast forward to today
+
+::: {.panel-tabset}
+
+## play
+
+<br><br>
+
+::: {style="font-size: 150%; text-align: center;"}
+
+The problem is still there!
+
+:::
+
+::: {style="font-size: 120%; text-align: center;"}
+
+See [https://playground.tensorflow.org/](https://playground.tensorflow.org/) to play with this.
+
+:::
+
+## one fit
+
+![](images/tensorflow1.png){width="1200px" fig-align="center"}
+
+## second fit
+
+![](images/tensorflow2.png){width="1200px" fig-align="center"}
+
+## third fit
+
+![](images/tensorflow3.png){width="1200px" fig-align="center"}
+
+## learn
+
+
+- A simple parsimonious model is possible, with the right choice of random seed.
+- In a more complex architecture, most nodes are indolent. 
+
+We need to know what the data looks like to inform the architecture.
+
+
+
+:::
+
+## Objective {.focus-slide}
+
+::: {.f80}
+In these examples the data was 2D, so knowing what it (and the model fit) looks like is easy. 
+:::
+
+<br>
+
+[This talk is about how we do this in [high dimensions]{.rn-fragment}.]{.fragment .letters .fadeIn}
+
+<br>
+
+::: {.f80}
+[With a focus [diagnostics]{.rn-fragment}, [simplicity]{.rn-fragment}, [understandability]{.rn-fragment}, [explainability]{.rn-fragment}.]{.fragment} 
+:::
+
+## Outline
+
+- Setting up to explore: what data sets are needed:
+    - training
+    - testing
+    - true (if evaluating something theoretically)
+    - fitted model using dense simulated data, to examine boundary
+    - Only examine two classes
+- Rashomon quartet: 
+- Global v local interpretations
+- Explainers: Janith's images
+- Disagreement: which is more helpful
+- Radial tour to investigate boundary in local neighbourhood, after guided tour using variables suggested by explainers
+- Complications of limitations of sampling: sparse/dense, gaps or no gaps
+- silly splines, kumquat, kultarr
+
+
+
+- Global vs local interpretations
+- What data sets do you need to construct?
+- Rashomon quartet
+- Conflicts between local explanations
+- Viewing the boundaries in high-dimensions, using slice and manual tours
+- Relationship to interpretation
+- Wish list for tidy models
+- Resources
+
+
+## Rashomon Quartet {.topic-slide}
+
+## Rashomon Quartet [(1/5)]{.f50}
+
+:::: {.columns}
+::: {.column width="30%"}
+
+**Anscombe's quartet**
+
+```{r}
+#| fig-width: 3
+#| fig-height: 3
+#| out-width: 80%
+#| echo: false
+anscombe_m <- data.frame()
+
+for (i in 1:4)
+  anscombe_m <- rbind(anscombe_m, 
+    data.frame(set=i, x=anscombe[,i], 
+               y=anscombe[,i+4]))
+
+ggplot(anscombe_m, aes(x=x, y=y)) + 
+  geom_smooth(method="lm", colour=ochre_clrs[1],
+              fullrange=TRUE, se=F) +
+  geom_point(size=1, colour=ochre_clrs[2]) + 
+  facet_wrap(~set, ncol=2) +
+  theme_bw() + 
+  theme(panel.background = element_rect(fill = 'transparent', colour = "black"),
+        axis.text = element_blank())
+```
+
+::: {.f70}
+
+```{r}
+#| echo: false
+anscombe_smry <- anscombe_m |>
+  group_by(set) |>
+  summarise(mx = mean(x),
+          sx = sd(x),
+          my = mean(y),
+          sy = sd(y),
+          r = cor(x, y))
+anscombe_smry |> 
+  mutate(mx = label_number(accuracy = 0.1)(mx),
+         sx = label_number(accuracy = 0.2)(sx),
+         my = label_number(accuracy = 0.1)(my),
+         sy = label_number(accuracy = 0.2)(sy),
+         r = label_number(accuracy = 0.2)(r)
+  ) |>
+  kable(align = c("c", "r", "r", "r", "r", "r"),
+        col.names = c("set", "$\\bar{x}$", "$s_x$", "$\\bar{y}$", "$s_y$", "$r$")) 
+  
+```
+:::
+
+:::
+
+::: {.column width="70%"}
+
+::: {.fragment}
+**Rashomon quartet**
+
+::: {.f80}
+- four predictive models [same performance]{.rn-fragment} with $R^2 = 0.729$ and $RMSE = 0.354$ (test set), but [different explanations]{.rn-fragment}.
+- $y$ continuous response, $x_1, x_2, x_3$ continuous predictors.
+:::
+
+::: {.fragment}
+
+```{r}
+#| fig-width: 5
+#| fig-height: 2
+#| out-width: 90%
+load("rashomon/pd_dt.rda")
+load("rashomon/pd_rf.rda")
+load("rashomon/pd_lm.rda")
+load("rashomon/pd_nn.rda")
+pd <- bind_rows(pd_lm$agr_profiles, 
+                pd_dt$agr_profiles, 
+                pd_rf$agr_profiles, 
+                pd_nn$agr_profiles) |>
+  mutate(`_label_` = factor(`_label_`, 
+    levels = c("linear regression", "decision tree",
+               "random forest", "neural network"),
+    labels = c("LM", "DT", "RF", "NN"))) 
+
+ggplot(pd, aes(x=`_x_`, y=`_yhat_`, colour=`_label_`)) +
+  geom_line(aes(linetype = `_label_`)) + 
+  facet_wrap(~`_vname_`, ncol = 3) +
+  scale_colour_viridis_d("", end = 0.9) +
+  scale_linetype("") +
+  xlab("") +
+  ylab("predicted") +
+  ggtitle("Partial dependence plots") +
+  theme_minimal() + 
+  theme(aspect.ratio = 1,
+    panel.background = element_rect(fill = 'transparent', colour = "black"), 
+    panel.grid = element_blank(),
+        #legend.position = "bottom",
+        axis.text = element_blank())
+
+```
+
+:::
+
+[Source: [Biecek et al (2024) Performance Is Not Enough](https://www.tandfonline.com/action/showCitFormats?doi=10.1080/10618600.2024.2344616)]{.f50}
+
+:::
+
+:::
+::::
+
+## Rashomon Quartet [(2/5)]{.f50}
+
+:::: {.columns}
+::: {.column}
+
+
+How do you engineer such data? What does this data look like?
+
+Why do the models disagree in their explanation?
+
+<br>
+
+::: {.info .fragment}
+
+Using high-dimensional visualisation can help understand the data and the potential for disagreement.
+
+That is, tours, linear combinations of the variables shown as a movie.
+
+:::
+
+:::
+::: {.column}
+
+
+::: {.fragment}
+
+Start simply, with a scatterplot matrix of the predictors.
+
+```{r}
+#| fig-width: 4
+#| fig-height: 4
+#| out-width: 80%
+train <- read_delim("rashomon/rq_train.csv", delim=";")
+ggscatmat(train, columns = 2:4)
+```
+
+:::
+
+:::
+::::
+
+## Rashomon Quartet [(3/5)]{.f50}
+
+:::: {.columns}
+::: {.column}
+
+**Predictors** in a tour
+
+::: {.f70}
+The predictors are strongly linearly associated. A recipe for expecting different model fits.
+:::
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| out-width: 80%
+#| echo: false
+htmltools::tags$style("
+  div.timelineContainer { left: 0px !important; right: 0px !important; }
+  div.timeline { left: 42px !important; right: 0px !important; }
+")
+predictors_detour <- readRDS("detour/predictors_detour.rds")
+predictors_detour
+```
+
+
+
+::: 
+::: {.column}
+
+::: {.fragment}
+
+Add the **Response**
+
+::: {.f70}
+
+There's a very slight nonlinear association.
+
+:::
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| out-width: 80%
+#| echo: false
+train_all_detour <- readRDS("detour/train_all_detour.rds")
+train_all_detour
+```
+
+
+:::
+
+:::
+::::
+
+## Rashomon Quartet [(4/5)]{.f50}
+
+:::: {.columns}
+::: {.column}
+
+::: {.f70}
+Let's make this more conventional, **response on the vertical axis** and predictors on the horizontal.
+:::
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| out-width: 100%
+#| echo: false
+htmltools::tags$style("
+  div.timelineContainer { left: 0px !important; right: 0px !important; }
+  div.timeline { left: 42px !important; right: 0px !important; }
+")
+train_detour <- readRDS("detour/train_detour.rds")
+train_detour
+```
+:::
+::: {.column}
+
+::: {.fragment}
+
+::: {.f70}
+Compare **fitted**  (black) with **observed**  (yellow) values: LM.
+:::
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| out-width: 100%
+#| echo: false
+train_lm_detour <- readRDS("detour/train_lm_detour.rds")
+train_lm_detour
+```
+
+:::
+:::
+
+::::
+
+## Rashomon Quartet [(5/5)]{.f50}
+
+:::: {.columns}
+::: {.column}
+
+::: {.f70}
+Compare **fitted** (black) with **observed** (yellow) values: NN.
+:::
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| out-width: 100%
+#| echo: false
+train_nn_detour <- readRDS("detour/train_nn_detour.rds")
+train_nn_detour
+```
+:::
+::: {.column}
+
+::: {.fragment}
+
+::: {.f70}
+Compare **fitted values** from two models: **LM vs NN**.
+:::
+
+<details class="note">
+<summary>Click to see interpretation</summary>
+
+The NN model captures the small nonlinear relationship, but it has some strange artefacts, particularly the multiple bands. The partial dependence plots hid this.
+
+</details>
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| out-width: 100%
+#| echo: false
+model_detour3 <- readRDS("detour/model_detour3.rds")
+model_detour3
+```
+
+:::
+:::
+::::
+
+## {.center}
+
+::: {.narrow6}
+::: {.info}
+
+The fit for a linear model (mostly) can be seen from a single projection, because the points will line up.
+
+For *nonlinear models*, there is *no single projection* that can capture the fit. But we can **zoom** into a smaller region, and even **slice** into this region to better see the fit.
+
+:::
+:::
+
+## Explainers {.topic-slide}
+
+## Remember the good old days? 
+
+:::: {.columns}
+::: {.column}
+```{r}
+#| echo: false
+data(trees)
+p_trees <- ggplot(trees, aes(x=Girth, y=Height)) +
+  geom_point(colour = "#435d42") +
+  xlab("Diameter (in)") +
+  ylab("Height (ft)")
+trees_lm <- lm(Height~Girth, trees)
+p_trees + geom_abline(
+  intercept = coefficients(trees_lm)[1],
+  slope = coefficients(trees_lm)[2],
+  colour = "#b1b646", linewidth = 2) +
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = 'transparent', colour = "black"))
+```
+
+:::
+::: {.column}
+
+
+::: {.f70}
+```{r}
+#| echo: false
+tidy(trees_lm) |>
+  mutate(
+    estimate = label_number(accuracy = 0.1)(estimate),
+    std.error = label_number(accuracy = 0.01)(std.error),
+    statistic = label_number(accuracy = 0.1)(statistic),
+    p.value = label_number(accuracy = 0.001)(p.value)
+  ) |>
+  kable(align = c("l", "r", "r", "r", "r"))
+```
+:::
+
+<br>
+
+INTERPRETATION
+
+*If the* **diameter** *increases by* **one inch**, the **height** *of the tree will be approximately* **one foot taller***, on average.* 
+
+:::
+::::
+
+![](images/breakfast-market.jpg){width="800px" fig-align="center"}
+
+## What are explainers?
+
+:::: {.columns"
+
+::: {.column}
+
+::: {.narrow9}
+
+Global explainability 
+
+- magnitude of coefficients
+- partial dependence plots
+- permutation variable importance
+
+applies to the entire data, but practically only if the model is a linear model. *For nonlinear models, global explainability will* **not capture** *intricate differences.*
+
+:::
+
+:::
+::: {.column}
+
+Local explainability
+
+- **LIME**: fits a linear model locally
+- **Shapley values**: change in fit if predictor is removed
+- **Counterfactuals**: closest point of different class (classification)
+- **Anchors**: make rectangle as big as possible that contains (mostly) one class  (classification)
+
+Computed at the individual observation level. 
+
+::: {.f70}
+
+*For more details, see Janith's virtual presentation at [Thur, 9 Jul, 11:10am, Explaining the Explainers](https://events.digital-research.academy/event/109/contributions/444/).*
+:::
+
+:::
+::::
+
+## Why use explainers?
+
+:::: {.columns}
+::: {.column width="40%"}
+
+::: {.narrow9}
+::: {.info}
+Explainers provide a numerical value for each predictor, which describes their **influence** on the fitted model.
+:::
+:::
+:::
+
+::: {.column width="60%"}
+
+Used for:
+
+- local variable importance
+- describing the model's nonlinearity (when computed for several nearby points)
+- supporting or debunking predictions
+- possibly even in legal challenges
+
+:::
+
+::: {.fragment}
+BUT, just like models, some explainers might be more suitable, given particular observed data.
+
+[SO, explainers might give contradictory explanations for any observation. You may be even more confused at this point.]{.rn-fragment}
+
+:::
+
+::::
+
+## Outline of steps to explain the explainers
+
+1. Simulate 2D data with two classes and nonlinear boundary.
+2. Show how explainers work on 2D data.
+3. Add noise variables to make multivariate data. [(Could also rotate structure into noise to hide it, but that is too much for today).]{.f70}
+4. Examine the (local) boundary between classes in the fitted model, relative to the explanations. Which provide the better explanations?
+
+## Set up the data: Training, test, fit (and true) data sets {.center}
+
+```{r}
+#| label: data-setup
+#| echo: true
+#| fig-asp: 0.3
+# Data is generated in data.R
+load("data/sp_data_tr.rda")
+load("data/sp_data_ts.rda")
+load("data/sp_data_true.rda")
+
+sp1 <- ggplot(sp_data_true, aes(x = x, y = y, colour = class)) +
+  geom_point() +
+  scale_colour_manual(values=ochre_clrs) +
+  ggtitle("TRUE") +
+  scale_x_continuous(expand = expansion(mult = 0.02)) +
+  scale_y_continuous(expand = expansion(mult = 0.02)) +
+  theme_weedy()
+sp2 <- ggplot(sp_data_tr, aes(x = x, y = y, colour = class)) +
+  geom_point() +
+  scale_colour_manual(values=ochre_clrs) +
+  ggtitle("TRAINING") +
+  scale_x_continuous(expand = expansion(mult = 0.02)) +
+  scale_y_continuous(expand = expansion(mult = 0.02)) +
+  theme_weedy()
+sp3 <- ggplot(sp_data_ts, aes(x = x, y = y, colour = class)) +
+  geom_point() +
+  scale_colour_manual(values=ochre_clrs) +
+  ggtitle("TEST") +
+  scale_x_continuous(expand = expansion(mult = 0.02)) +
+  scale_y_continuous(expand = expansion(mult = 0.02))  +
+  theme_weedy()
+sp4 <- ggplot(sp_data_true, aes(x = x, y = y, colour = fitted)) +
+  geom_point() +
+  scale_colour_manual(values=ochre_clrs) +
+  ggtitle("MODEL - explain this") +
+  scale_x_continuous(expand = expansion(mult = 0.02)) +
+  scale_y_continuous(expand = expansion(mult = 0.02)) +
+  theme_weedy()
+sp2 + sp3 + sp4 + sp1 + plot_layout(ncol=4)
+```
+
+::: {style = "margin-left: 300px;"}
+
+::: {.info .fragment .narrow6}
+
+To explain the model fit, it helps to have a full spread of predictor values in the domain, i.e. a square (hypercube in high dimensions).
+
+:::
+:::
+
+## Explanations
+
+:::: {.columns}
+::: {.column}
+
+These are the points we'll explain
+
+::: {.panel-tabset}
+
+## 1
+
+```{r}
+#| label: to-explain
+#| eval: true
+#| fig-width: 3
+#| fig-height: 3
+#| out-width: 70%
+# Code for calculations is in explainers.R
+load("data/explainers1.rda")
+load("data/sp_pt_cf.rda")
+load("data/sp_pt_cf_wide.rda")
+
+p <- ggplot(sp_data_true, aes(x = x, y = y, colour = fitted)) +
+  geom_point() +
+  scale_colour_manual(values=ochre_clrs) +
+  scale_x_continuous(expand = expansion(mult = 0.02)) +
+  scale_y_continuous(expand = expansion(mult = 0.02)) +
+  theme_weedy()
+
+p + 
+  geom_point(data=filter(sp_pt_cf, type=="pt"), 
+             aes(x=x, y=y), 
+             inherit.aes = FALSE) +
+  geom_label_repel(data=filter(sp_pt_cf, type=="pt"), 
+             aes(x=x, y=y, label=id), 
+             alpha = 0.5,
+             segment.colour = NA,
+             inherit.aes = FALSE)
+
+```
+
+## 2
+
+```{r}
+#| label: counterfactuals
+#| eval: true
+#| fig-width: 3
+#| fig-height: 3
+#| out-width: 70%
+
+p + 
+  geom_point(data=sp_pt_cf, aes(x=x, y=y, shape=type), 
+             inherit.aes = FALSE) +
+  geom_segment(data=sp_pt_cf_wide, 
+               aes(x=x_pt, y=y_pt, xend=x_cf, yend=y_cf), 
+               inherit.aes = FALSE) +
+  scale_shape_manual(values = c(4, 16))
+```
+
+:::
+
+:::
+::: {.column}
+
+::: {.fragment}
+
+Here are the explanations
+
+```{r}
+#| label: explainers
+#| eval: true
+kable(sp_explainers, format = "html") |>
+  kable_styling(full_width = FALSE, font_size = 30) |>
+  row_spec(0, extra_css = "border-bottom: 2px solid black;") |>
+  row_spec(1, extra_css = "border-bottom: 2px solid black;") |>
+  row_spec(5, extra_css = "border-bottom: 2px solid black;") |>
+  row_spec(9, extra_css = "border-bottom: 2px solid black;")
+
+```
+
+::: {.f70}
+
+Mostly, they agree, except counterfactuals for observation 2.
+:::
+
+:::
+
+:::
+::::
+
+## Do this in four dimensions {.focus-slide}
+
+- Add two noise dimensions
+- Examine training data using a guided tour, and radial tour, possibly using a slice display
+- Compute explainers
+- Use global values to set base projection
+- Zoom into to local area of observation
+- Use local explanations to vary the projection
+
+## Purely visualisation [(1/3)]{.f50}
+
+:::: {.columns}
+::: {.column}
+
+[Viewing the training data, using a **guided tour**]{.f70}
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| fig-align: center
+#| out-width: 100%
+#| echo: false
+# Code for making animations is in graphics.R
+sp4_tr_detour <- readRDS("detour/sp4_tr_detour.rds")
+sp4_tr_detour
+```
+
+
+:::
+::: {.column}
+
+::: {.fragment}
+
+[**Grid** is better for boundary view]{.f70}
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| fig-align: center
+#| out-width: 100%
+#| echo: false
+sp4_true_detour <- readRDS("detour/sp4_true_detour.rds")
+sp4_true_detour
+```
+
+:::
+
+:::
+::::
+
+## Purely visualisation [(2/3)]{.f50}
+
+:::: {.columns}
+::: {.column}
+
+[Projection]{.f70}
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| fig-align: center
+#| out-width: 100%
+#| echo: false
+# Code for making animations is in graphics.R
+sp4_true_detour <- readRDS("detour/sp4_true_detour.rds")
+sp4_true_detour
+```
+
+
+:::
+::: {.column}
+
+::: {.fragment}
+
+[**Slice display** can make boundary easier to see]{.f70}
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| fig-align: center
+#| out-width: 100%
+#| echo: false
+sp4_true_detour_slice <- readRDS("detour/sp4_true_detour_slice.rds")
+sp4_true_detour_slice
+```
+
+:::
+
+:::
+::::
+
+## Purely visualisation [(3/3)]{.f50}
+
+:::: {.columns}
+::: {.column}
+
+[Radial tour, $x_1$ removed. $x_1$ **not** important.]{.f70}
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| fig-align: center
+#| out-width: 100%
+#| echo: false
+sp4_true_detour_x1 <- readRDS("detour/sp4_true_detour_x1.rds")
+sp4_true_detour_x1
+```
+
+:::
+::: {.column}
+
+
+[Radial tour, $x_2$ removed: $x_2$ is **very important**.]{.f70}
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| fig-align: center
+#| out-width: 100%
+#| echo: false
+sp4_true_detour_x2 <- readRDS("detour/sp4_true_detour_x2.rds")
+sp4_true_detour_x2
+```
+
+:::
+::::
+
+## Inside the tour toolbox {.center}
+
+::: {.narrow9}
+::: {.info}
+
+- **grand tour**: *random* projections - use this to get a quick **overview**. 
+- **guided tour**: choice of projections follows an *optimisation*, here difference between the two classes - use this find **specific structure**.
+- **radial tour**: new projection *removes* a variable - use this to examine sensitivity of structure to that variable.
+
+<br>
+
+- **slice display**: points that are *further* than cutoff distance from a projection plane through the data centre are *faded* - use to examine **nonlinear structure**.
+
+:::
+:::
+
+## Explainers
+
+## What data sets do you need to construct?
+
+For each we need **observed** and **predicted** class
+
+- **Data**: divided into the usual sets, to fit the model to one and assess it on the other
+  - *Training data*: Can help see model form.
+  - *Test data*: Errors help to understand fitted model peculiarities.
+- **Model fitted to data domain**: This provides a more complete view of the fitted model from which to understand its strengths and quirks.
+- **The Oracle**: In a theoretical framework, we have a pristine environment within which to examine model behaviour.
+
+```{r}
+#| fig-width: 12
+#| fig-height: 3
+#| out-width: 100%
+#| fig-alt: "Scatterplots ..."
+#| eval: false
+d_train <- create_data("data/coords3.json", n_samples = 900, seed = 117) |>
+    mutate(class = factor(class))
+d_test <- create_data("data/coords3.json", n_samples = 300, seed = 124) |>
+    mutate(class = factor(class))
+d_domain <- create_data("data/coords3.json", n_samples = 10000, seed = 421)  |>
+    mutate(class = factor(class))
+d_rf <- randomForest::randomForest(class~., data=d_train)
+d_train <- d_train |>
+    mutate(pcl = d_rf$predicted) |>
+    mutate(err = factor(if_else(class != pcl, "yes", "no")))
+d_test <- d_test |>
+    mutate(pcl = predict(d_rf, d_test)) |>
+    mutate(err = factor(if_else(class != pcl, "yes", "no")))
+d_domain <- d_domain |>
+    mutate(pcl = predict(d_rf, d_domain, 
+      type = "prob")[,1]) 
+p_train <- ggplot(d_train, 
+                  aes(x, y, 
+                    colour = class, 
+                    shape = err)) + 
+    geom_point() +
+    scale_shape_manual("error", values=c(1, 19)) +
+#    scale_colour_discrete_divergingx(palette = "SunsetDark") +
+  scale_colour_ochre(palette = "tasmania") +
+    ggtitle("training") +
+    theme(
+        legend.position = "none",
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank())
+ p_test <- ggplot(d_test, 
+                  aes(x, y, 
+                    colour = class, 
+                    shape = err)) + 
+    geom_point() +
+    scale_shape_manual("error", values=c(1, 19)) +
+    #scale_colour_discrete_divergingx(palette = "SunsetDark") +
+  scale_colour_ochre(palette = "tasmania") +
+    ggtitle("test") +
+    theme(
+        legend.position = "none",
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank()) 
+# divergingx_hcl(2, "SunsetDark")        
+p_domain <- ggplot(d_domain, 
+                   aes(x, y, 
+                     colour = pcl)) +  
+    geom_point(alpha = 0.7, cex=0.8) +
+#    scale_colour_gradient2(high = "#3B99B1",
+#     low = "#F5191C", midpoint=0.5) +
+    scale_colour_gradient2(high = "#a84830",
+     low = "#d89060", midpoint=0.5) +
+    ggtitle("fitted model") +
+    theme(
+        legend.position = "none",
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank())  
+p_truth <- ggplot(d_domain, 
+                   aes(x, y, 
+                     colour = class)) +  
+    geom_point(alpha=0.7, cex=0.8) +
+    scale_colour_discrete_divergingx(palette = "Zissou 1") +
+    ggtitle("truth") +
+    theme(
+        legend.position = "none",
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank())          
+p_train + p_test + p_domain + p_truth + plot_layout(ncol=4)    
+```
+
+## Dependencies
+
+When multiple variables interact
+
+Why is it so difficult to interpret classifiers of the penguins data
+
+
+## Visual tools
+
+- Explainers, to help guide the projection sequence
+- Tour projections saved sequence, guided or local, to use for the different data forms
+- Slices instead of projection
+- Zoom
+
+## Testing more fragments
+
+[This is letter animation]{.fragment .letters .fadeIn}
+
+[This is letter puffIn]{.fragment .puffIn}
+
+[This is letter perspectiveUpReturn]{.fragment .perspectiveUpReturn}
+
+This is [word]{.fragment .bounce} bounce.
+
+[highlighted word]{.rn-fragment}
+
+## Conclusions
+
+- There is so much scope for research, methodology and software for explaining model.
+
+- Power to the people!
+
+- Visual tools can help. Let's work with our eyes open!
+
+
+- Make it easier to deconstruct your model:
+    - NNs and ensembles: models at nodes, predictions, weights
+    - Importance scores
+- Beware non-uniform sampling. If predictors are not uniformly sampled, bets on models are off the table.
+- Covariance between variables.
+
+## Resources
+
+- https://ema.drwhy.ai/
+- https://bradleyboehmke.github.io/HOML/
+- https://christophm.github.io/interpretable-ml-book/
+- https://www.tmwr.org/
+- mulgar book
+- Model in the data space
