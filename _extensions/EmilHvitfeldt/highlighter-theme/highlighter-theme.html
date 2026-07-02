@@ -1,0 +1,377 @@
+<!-- SVG Gradient Definitions for Highlight Effects -->
+<svg width="0" height="0" style="position: absolute;">
+  <defs>
+    <linearGradient id="grad-yellow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgb(255 232 62)" stop-opacity="0.7"/>
+      <stop offset="35%" stop-color="rgb(255 232 62)" stop-opacity="0.3"/>
+      <stop offset="65%" stop-color="rgb(255 232 62)" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="rgb(255 232 62)" stop-opacity="0.4"/>
+    </linearGradient>
+    <linearGradient id="grad-green" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgb(91 233 92)" stop-opacity="0.7"/>
+      <stop offset="35%" stop-color="rgb(91 233 92)" stop-opacity="0.3"/>
+      <stop offset="65%" stop-color="rgb(91 233 92)" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="rgb(91 233 92)" stop-opacity="0.4"/>
+    </linearGradient>
+    <linearGradient id="grad-pink" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgb(255 100 185)" stop-opacity="0.7"/>
+      <stop offset="35%" stop-color="rgb(255 100 185)" stop-opacity="0.3"/>
+      <stop offset="65%" stop-color="rgb(255 100 185)" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="rgb(255 100 185)" stop-opacity="0.4"/>
+    </linearGradient>
+    <linearGradient id="grad-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgb(100 180 255)" stop-opacity="0.7"/>
+      <stop offset="35%" stop-color="rgb(100 180 255)" stop-opacity="0.3"/>
+      <stop offset="65%" stop-color="rgb(100 180 255)" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="rgb(100 180 255)" stop-opacity="0.4"/>
+    </linearGradient>
+    <linearGradient id="grad-orange" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgb(255 165 80)" stop-opacity="0.7"/>
+      <stop offset="35%" stop-color="rgb(255 165 80)" stop-opacity="0.3"/>
+      <stop offset="65%" stop-color="rgb(255 165 80)" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="rgb(255 165 80)" stop-opacity="0.4"/>
+    </linearGradient>
+    <linearGradient id="grad-purple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgb(180 130 255)" stop-opacity="0.7"/>
+      <stop offset="35%" stop-color="rgb(180 130 255)" stop-opacity="0.3"/>
+      <stop offset="65%" stop-color="rgb(180 130 255)" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="rgb(180 130 255)" stop-opacity="0.4"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<script type="text/javascript">
+// Paper-relative decorations for theme-paper1
+// Uses actual DOM elements with absolute positioning for true paper-relative placement
+
+const SHAPES = {
+  star: "M40 5 L47 30 L73 30 L52 48 L60 73 L40 57 L20 73 L28 48 L7 30 L33 30 Z",
+  heart: "M40 70 C10 45 0 25 20 10 C35 0 40 15 40 20 C40 15 45 0 60 10 C80 25 70 45 40 70",
+  check: "M5 35 L30 60 L75 10",
+  spiral: "M40 40 C40 30 50 25 55 35 C60 45 50 55 40 55 C25 55 20 40 25 28 C30 15 50 10 62 25 C75 40 65 65 40 65"
+};
+
+const COLORS = {
+  yellow: "255, 232, 62",
+  green: "91, 233, 92",
+  pink: "255, 100, 185",
+  blue: "100, 180, 255",
+  orange: "255, 165, 80",
+  purple: "180, 130, 255"
+};
+
+function createDashSVG(color, angle) {
+  const rgb = COLORS[color];
+  const id = 'g' + Math.random().toString(36).substr(2, 9);
+  return `<svg viewBox="0 0 500 120" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="${id}" x1="0%" y1="50%" x2="100%" y2="50%">
+        <stop offset="0%" stop-color="rgba(${rgb}, 0.7)"/>
+        <stop offset="50%" stop-color="rgba(${rgb}, 0.3)"/>
+        <stop offset="100%" stop-color="rgba(${rgb}, 0.65)"/>
+      </linearGradient>
+    </defs>
+    <rect x="0" y="0" width="500" height="120" rx="8" fill="url(#${id})" transform="rotate(${angle} 250 60)"/>
+  </svg>`;
+}
+
+function createShapeSVG(color, shapeName, angle = 0) {
+  const path = SHAPES[shapeName];
+  const viewBox = shapeName === 'heart' ? '0 0 80 75' : '0 0 80 80';
+  // Use the global gradient defined in the SVG defs
+  return `<svg viewBox="${viewBox}" xmlns="http://www.w3.org/2000/svg" style="transform: rotate(${angle}deg); overflow: visible;">
+    <path d="${path}" fill="none" stroke="url(#grad-${color})" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+function createDecoration(type, color, options = {}) {
+  const div = document.createElement('div');
+  div.className = 'paper-decoration';
+
+  const styles = [
+    'position: absolute',
+    'pointer-events: none',
+  ];
+
+  if (options.top !== undefined) styles.push(`top: ${options.top}`);
+  if (options.bottom !== undefined) styles.push(`bottom: ${options.bottom}`);
+  if (options.left !== undefined) styles.push(`left: ${options.left}`);
+  if (options.right !== undefined) styles.push(`right: ${options.right}`);
+  styles.push(`width: ${options.width || '15%'}`);
+
+  if (type === 'dash') {
+    styles.push('aspect-ratio: 500 / 120');
+    div.innerHTML = createDashSVG(color, options.angle || 0);
+  } else if (SHAPES[type]) {
+    styles.push(type === 'heart' ? 'aspect-ratio: 80 / 75' : 'aspect-ratio: 1');
+    div.innerHTML = createShapeSVG(color, type, options.angle || 0);
+  }
+
+  div.style.cssText = styles.join('; ');
+
+  const svg = div.querySelector('svg');
+  if (svg) {
+    svg.style.width = '100%';
+    svg.style.height = '100%';
+    svg.style.overflow = 'visible';
+  }
+
+  return div;
+}
+
+// Theme definitions with paper-relative positions
+const PAPER_THEMES = {
+  // theme-slide1: Scattered Dashes - Colorful dashes and shapes scattered around edges
+  'theme-slide1': [
+    { type: 'dash', color: 'yellow', top: '-10%', left: '5%', width: '38%', angle: -8 },
+    { type: 'dash', color: 'pink', bottom: '-12%', left: '45%', width: '35%', angle: 12 },
+    { type: 'dash', color: 'green', bottom: '-10%', right: '-5%', width: '36%', angle: -5 },
+    { type: 'dash', color: 'blue', top: '-8%', right: '-5%', width: '32%', angle: 7 },
+    { type: 'dash', color: 'purple', top: '-8%', left: '-8%', width: '30%', angle: -15 },
+    { type: 'dash', color: 'orange', top: '-10%', right: '20%', width: '28%', angle: 20 },
+    { type: 'star', color: 'orange', top: '45%', right: '-6%', width: '14%', angle: 15 },
+    { type: 'heart', color: 'pink', top: '25%', left: '-5%', width: '12%', angle: -10 },
+    { type: 'check', color: 'green', bottom: '-3%', right: '10%', width: '10%', angle: 5 },
+    { type: 'spiral', color: 'purple', top: '-6%', left: '42%', width: '12%', angle: -20 },
+    { type: 'dash', color: 'green', bottom: '-8%', left: '-5%', width: '34%', angle: -12 },
+    { type: 'dash', color: 'blue', bottom: '-10%', right: '25%', width: '30%', angle: 15 },
+    { type: 'dash', color: 'yellow', top: '45%', left: '-8%', width: '24%', angle: 70 },
+    { type: 'dash', color: 'pink', top: '-5%', right: '-3%', width: '22%', angle: 100 },
+  ],
+
+  // theme-slide2: Shapes Only - Stars, hearts, spirals, checkmarks (no dashes)
+  'theme-slide2': [
+    { type: 'star', color: 'yellow', bottom: '-8%', left: '45%', width: '16%', angle: 12 },
+    { type: 'heart', color: 'pink', top: '-5%', right: '-3%', width: '14%', angle: -8 },
+    { type: 'check', color: 'green', bottom: '-4%', right: '5%', width: '12%', angle: 5 },
+    { type: 'spiral', color: 'blue', bottom: '-6%', left: '-5%', width: '16%', angle: -15 },
+    { type: 'star', color: 'orange', top: '-6%', left: '48%', width: '11%', angle: -20 },
+    { type: 'heart', color: 'purple', top: '-5%', left: '-4%', width: '12%', angle: 10 },
+  ],
+
+  // theme-slide3: Diagonal Pattern - All dashes at 45 degree angles
+  'theme-slide3': [
+    { type: 'dash', color: 'yellow', top: '-10%', right: '-5%', width: '34%', angle: 45 },
+    { type: 'dash', color: 'pink', top: '-8%', left: '-5%', width: '32%', angle: -45 },
+    { type: 'dash', color: 'green', bottom: '-10%', left: '-5%', width: '30%', angle: 45 },
+    { type: 'dash', color: 'blue', bottom: '-8%', right: '-5%', width: '34%', angle: -45 },
+    { type: 'dash', color: 'purple', top: '-8%', left: '40%', width: '28%', angle: 30 },
+    { type: 'dash', color: 'orange', bottom: '-8%', left: '42%', width: '28%', angle: -30 },
+  ],
+
+  // theme-slide4: Frame Border - Dashes arranged around all four edges
+  'theme-slide4': [
+    { type: 'dash', color: 'yellow', top: '-10%', left: '5%', width: '36%', angle: 3 },
+    { type: 'dash', color: 'pink', top: '-8%', right: '5%', width: '32%', angle: -2 },
+    { type: 'dash', color: 'green', top: '5%', right: '-8%', width: '32%', angle: 85 },
+    { type: 'dash', color: 'blue', bottom: '5%', right: '-8%', width: '30%', angle: 88 },
+    { type: 'dash', color: 'purple', bottom: '-10%', left: '10%', width: '34%', angle: -3 },
+    { type: 'dash', color: 'orange', bottom: '-8%', right: '10%', width: '32%', angle: 2 },
+    { type: 'dash', color: 'yellow', top: '5%', left: '-8%', width: '30%', angle: 92 },
+    { type: 'dash', color: 'green', bottom: '5%', left: '-8%', width: '28%', angle: 87 },
+  ],
+
+  // theme-slide5: Vertical Emphasis - Vertical dashes on left and right sides (blue only)
+  'theme-slide5': [
+    { type: 'dash', color: 'blue', bottom: '-8%', left: '-10%', width: '38%', angle: 85 },
+    { type: 'dash', color: 'blue', top: '-8%', left: '-8%', width: '35%', angle: 92 },
+    { type: 'dash', color: 'blue', bottom: '-5%', left: '20%', width: '36%', angle: 88 },
+    { type: 'dash', color: 'blue', top: '-10%', right: '-5%', width: '40%', angle: 93 },
+    { type: 'dash', color: 'blue', top: '-5%', right: '-8%', width: '36%', angle: 87 },
+    { type: 'dash', color: 'blue', bottom: '-8%', right: '-8%', width: '38%', angle: 90 },
+  ],
+
+  // theme-slide6: Warm Colors - Yellow, orange, and pink only
+  'theme-slide6': [
+    { type: 'dash', color: 'yellow', top: '-12%', left: '-5%', width: '36%', angle: -6 },
+    { type: 'dash', color: 'orange', top: '-10%', right: '-5%', width: '34%', angle: 8 },
+    { type: 'dash', color: 'pink', bottom: '-10%', right: '10%', width: '35%', angle: -10 },
+    { type: 'dash', color: 'yellow', bottom: '-8%', left: '15%', width: '32%', angle: 12 },
+    { type: 'dash', color: 'orange', top: '50%', right: '-8%', width: '30%', angle: 75 },
+    { type: 'dash', color: 'pink', top: '60%', left: '-8%', width: '28%', angle: 82 },
+    { type: 'star', color: 'orange', top: '-6%', left: '42%', width: '12%', angle: 15 },
+  ],
+
+  // theme-slide7: Cool Colors - Blue, green, and purple only
+  'theme-slide7': [
+    { type: 'dash', color: 'blue', top: '-12%', left: '-3%', width: '38%', angle: -5 },
+    { type: 'dash', color: 'green', top: '-10%', right: '5%', width: '35%', angle: 7 },
+    { type: 'dash', color: 'purple', bottom: '-12%', right: '-5%', width: '36%', angle: -8 },
+    { type: 'dash', color: 'blue', bottom: '-8%', left: '-3%', width: '34%', angle: 10 },
+    { type: 'dash', color: 'green', top: '35%', right: '-8%', width: '32%', angle: 78 },
+    { type: 'dash', color: 'purple', top: '40%', left: '-8%', width: '30%', angle: 85 },
+    { type: 'spiral', color: 'blue', bottom: '-6%', left: '40%', width: '14%', angle: -12 },
+  ],
+
+  // theme-slide8: Confetti - Many small shapes scattered everywhere
+  'theme-slide8': [
+    { type: 'star', color: 'yellow', top: '-4%', left: '-3%', width: '9%', angle: 5 },
+    { type: 'heart', color: 'pink', top: '-4%', right: '5%', width: '8%', angle: -12 },
+    { type: 'check', color: 'green', top: '20%', right: '-4%', width: '7%', angle: 8 },
+    { type: 'spiral', color: 'blue', bottom: '-4%', left: '-3%', width: '9%', angle: -5 },
+    { type: 'star', color: 'orange', bottom: '-4%', right: '5%', width: '8%', angle: 20 },
+    { type: 'heart', color: 'purple', top: '-5%', left: '40%', width: '8%', angle: -18 },
+    { type: 'dash', color: 'yellow', bottom: '-8%', left: '20%', width: '20%', angle: 15 },
+    { type: 'dash', color: 'pink', bottom: '-6%', right: '25%', width: '18%', angle: -20 },
+    { type: 'dash', color: 'green', top: '-6%', left: '15%', width: '20%', angle: 8 },
+    { type: 'dash', color: 'blue', top: '-5%', right: '20%', width: '18%', angle: -12 },
+    { type: 'dash', color: 'purple', top: '35%', left: '-6%', width: '16%', angle: 25 },
+    { type: 'dash', color: 'orange', top: '55%', right: '-5%', width: '17%', angle: -8 },
+  ],
+
+  // theme-slide9: Circular - Dashes in a loose circular pattern
+  'theme-slide9': [
+    { type: 'dash', color: 'yellow', top: '-8%', left: '45%', width: '30%', angle: 0 },
+    { type: 'dash', color: 'pink', top: '-5%', right: '-5%', width: '28%', angle: 60 },
+    { type: 'dash', color: 'green', top: '40%', right: '-8%', width: '30%', angle: 90 },
+    { type: 'dash', color: 'blue', bottom: '-5%', right: '-3%', width: '28%', angle: 120 },
+    { type: 'dash', color: 'purple', bottom: '-8%', left: '42%', width: '32%', angle: 180 },
+    { type: 'dash', color: 'orange', bottom: '-3%', left: '-5%', width: '28%', angle: 240 },
+    { type: 'dash', color: 'yellow', top: '45%', left: '-8%', width: '30%', angle: 270 },
+    { type: 'dash', color: 'pink', top: '-5%', left: '-3%', width: '28%', angle: 300 },
+  ],
+
+  // theme-slide10: Top Heavy - Elements clustered along top edge
+  'theme-slide10': [
+    { type: 'dash', color: 'yellow', top: '-10%', left: '-5%', width: '35%', angle: -5 },
+    { type: 'dash', color: 'pink', top: '-8%', left: '50%', width: '32%', angle: 3 },
+    { type: 'dash', color: 'green', top: '-10%', right: '-5%', width: '34%', angle: -8 },
+    { type: 'star', color: 'orange', bottom: '-4%', left: '20%', width: '12%', angle: 15 },
+    { type: 'heart', color: 'purple', bottom: '-4%', right: '25%', width: '10%', angle: -10 },
+    { type: 'dash', color: 'blue', top: '30%', left: '-8%', width: '26%', angle: 85 },
+    { type: 'dash', color: 'orange', top: '30%', right: '-8%', width: '24%', angle: 88 },
+  ],
+
+  // theme-slide11: Bottom Heavy - Elements clustered along bottom edge
+  'theme-slide11': [
+    { type: 'dash', color: 'blue', top: '-12%', left: '-5%', width: '36%', angle: 5 },
+    { type: 'dash', color: 'green', top: '-10%', left: '40%', width: '34%', angle: -3 },
+    { type: 'dash', color: 'purple', top: '-10%', right: '-3%', width: '32%', angle: 7 },
+    { type: 'spiral', color: 'pink', bottom: '-5%', left: '22%', width: '14%', angle: 20 },
+    { type: 'check', color: 'yellow', bottom: '-4%', right: '20%', width: '11%', angle: -5 },
+    { type: 'dash', color: 'orange', top: '60%', left: '-8%', width: '28%', angle: 82 },
+    { type: 'dash', color: 'pink', top: '65%', right: '-6%', width: '26%', angle: 92 },
+  ],
+
+  // theme-slide12: Corners - Elements in all four corners
+  'theme-slide12': [
+    { type: 'dash', color: 'yellow', top: '-8%', right: '-5%', width: '32%', angle: 35 },
+    { type: 'dash', color: 'pink', top: '-8%', left: '-5%', width: '32%', angle: -35 },
+    { type: 'dash', color: 'green', bottom: '-8%', right: '-3%', width: '32%', angle: -35 },
+    { type: 'dash', color: 'blue', bottom: '-8%', left: '-5%', width: '32%', angle: 35 },
+    { type: 'star', color: 'orange', top: '-4%', left: '-3%', width: '10%', angle: 10 },
+    { type: 'star', color: 'purple', top: '-5%', right: '-2%', width: '10%', angle: -10 },
+    { type: 'heart', color: 'pink', bottom: '-3%', left: '-2%', width: '9%', angle: 15 },
+    { type: 'heart', color: 'blue', bottom: '-3%', right: '-1%', width: '9%', angle: -15 },
+  ],
+
+  // theme-slide13: Rainbow Sides - Colors arranged along left and right sides
+  'theme-slide13': [
+    { type: 'dash', color: 'pink', top: '-8%', left: '-5%', width: '30%', angle: 15 },
+    { type: 'dash', color: 'orange', top: '20%', left: '-6%', width: '28%', angle: 10 },
+    { type: 'dash', color: 'yellow', bottom: '-5%', left: '-5%', width: '27%', angle: 5 },
+    { type: 'dash', color: 'green', bottom: '-8%', left: '12%', width: '28%', angle: -5 },
+    { type: 'dash', color: 'blue', top: '-8%', right: '-3%', width: '30%', angle: -15 },
+    { type: 'dash', color: 'purple', top: '15%', right: '-5%', width: '29%', angle: -10 },
+    { type: 'dash', color: 'pink', bottom: '-5%', right: '-3%', width: '27%', angle: -5 },
+    { type: 'dash', color: 'orange', bottom: '-8%', right: '15%', width: '28%', angle: 5 },
+  ],
+
+};
+
+let decorationContainers = [];
+
+function initPaperDecorations() {
+  console.log('Initializing paper decorations...');
+
+  // Get all slides and backgrounds in order
+  const allSlides = document.querySelectorAll('.reveal .slides section');
+  const allBackgrounds = document.querySelectorAll('.reveal .backgrounds .slide-background');
+
+  allSlides.forEach((slide, index) => {
+    // Skip if already decorated
+    if (slide.dataset.decorated) return;
+
+    // Check which theme class this slide has
+    let themeClass = null;
+    Object.keys(PAPER_THEMES).forEach(tc => {
+      if (slide.classList.contains(tc)) {
+        themeClass = tc;
+      }
+    });
+
+    if (!themeClass) return;
+
+    slide.dataset.decorated = 'true';
+
+    // Get the corresponding background by index
+    const bg = allBackgrounds[index];
+    if (!bg) return;
+
+    console.log(`Decorating slide ${index} with ${themeClass}`);
+
+    // Create container
+    const container = document.createElement('div');
+    container.className = 'paper-decorations-container';
+    container.style.cssText = `
+      position: absolute;
+      pointer-events: none;
+      overflow: visible;
+    `;
+
+    // Add decorations
+    PAPER_THEMES[themeClass].forEach(config => {
+      const decoration = createDecoration(config.type, config.color, config);
+      container.appendChild(decoration);
+    });
+
+    bg.appendChild(container);
+    bg.style.overflow = 'visible';
+
+    // Store reference for repositioning
+    decorationContainers.push({ container, slide, bg });
+  });
+
+  // Initial position update
+  updateDecorationPositions();
+}
+
+function updateDecorationPositions() {
+  decorationContainers.forEach(({ container, slide, bg }) => {
+    // Get the slide's actual rendered position (after reveal.js scaling)
+    const slideRect = slide.getBoundingClientRect();
+    const bgRect = bg.getBoundingClientRect();
+
+    // Calculate position relative to background
+    const top = slideRect.top - bgRect.top;
+    const left = slideRect.left - bgRect.left;
+    const width = slideRect.width;
+    const height = slideRect.height;
+
+    container.style.top = `${top}px`;
+    container.style.left = `${left}px`;
+    container.style.width = `${width}px`;
+    container.style.height = `${height}px`;
+  });
+}
+
+// Wait for Reveal to be fully ready
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    if (typeof Reveal !== 'undefined') {
+      initPaperDecorations();
+
+      // Update positions on resize
+      window.addEventListener('resize', updateDecorationPositions);
+
+      // Update on slide change
+      Reveal.on('slidechanged', () => {
+        setTimeout(updateDecorationPositions, 50);
+      });
+
+      // Update on reveal resize
+      Reveal.on('resize', updateDecorationPositions);
+    }
+  }, 500);
+});
+</script>

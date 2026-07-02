@@ -1,0 +1,9 @@
+title: Highlighter Theme
+author: Emil Hvitfeldt
+version: 0.0.1
+quarto-required: ">=1.2.0"
+contributes:
+  format:
+    revealjs:
+      theme: highlighter-theme.scss
+      include-after-body: highlighter-theme.html

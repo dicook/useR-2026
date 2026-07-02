@@ -1017,6 +1017,7 @@ Why is it so difficult to interpret classifiers of the penguins data
 - Slices instead of projection
 - Zoom
 
+<!--
 ## Testing more fragments
 
 [This is letter animation]{.fragment .letters .fadeIn}
@@ -1028,6 +1029,7 @@ Why is it so difficult to interpret classifiers of the penguins data
 This is [word]{.fragment .bounce} bounce.
 
 [highlighted word]{.rn-fragment}
+-->
 
 ## Conclusions
 
@@ -1046,9 +1048,31 @@ This is [word]{.fragment .bounce} bounce.
 
 ## Resources
 
+:::: {.columns}
+::: {.column width="50%"}
+
+::: {.f70}
+
+**`mulgar` book**  
+[https://dicook.github.io/mulgar_book/](https://dicook.github.io/mulgar_book/) 
+
 - https://ema.drwhy.ai/
 - https://bradleyboehmke.github.io/HOML/
 - https://christophm.github.io/interpretable-ml-book/
 - https://www.tmwr.org/
 - mulgar book
 - Model in the data space
+
+:::
+:::
+::::
+
+<br><br>
+
+Slides made in [Quarto](https://quarto.org/), with code included.  
+
+<br>
+
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+
+

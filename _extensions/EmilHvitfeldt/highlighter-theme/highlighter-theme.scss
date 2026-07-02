@@ -1,0 +1,303 @@
+$highlight-colors: (
+  "yellow": #ffe83e,
+  "green": #5be95c,
+  "pink": #ff64b9,
+  "blue": #64b4ff,
+  "orange": #ffa550,
+  "purple": #b482ff
+);
+
+$highlight-mark-settings: (
+  "yellow": (rotate: 1deg, scale: 1.1, skew: -5deg, angle: 50deg),
+  "green": (rotate: 0deg, scale: 0.92, skew: 7deg, angle: 30deg),
+  "pink": (rotate: 0.5deg, scale: 1, skew: 5deg, angle: 150deg),
+  "blue": (rotate: -1deg, scale: 1.05, skew: -3deg, angle: 70deg),
+  "orange": (rotate: 0.8deg, scale: 1.08, skew: 4deg, angle: 45deg),
+  "purple": (rotate: -0.5deg, scale: 0.95, skew: -6deg, angle: 130deg)
+);
+
+$star-path: "M40 5 L47 30 L73 30 L52 48 L60 73 L40 57 L20 73 L28 48 L7 30 L33 30 Z";
+$heart-path: "M40 70 C10 45 0 25 20 10 C35 0 40 15 40 20 C40 15 45 0 60 10 C80 25 70 45 40 70";
+$check-path: "M5 35 L30 60 L75 10";
+$spiral-path: "M40 40 C40 30 50 25 55 35 C60 45 50 55 40 55 C25 55 20 40 25 28 C30 15 50 10 62 25 C75 40 65 65 40 65";
+
+/*-- scss:functions --*/
+
+@function hl($name) {
+  $color: map-get($highlight-colors, $name);
+  @return "#{red($color)} #{green($color)} #{blue($color)}";
+}
+
+@function hl-color($name) {
+  @return map-get($highlight-colors, $name);
+}
+
+@function dash-svg($color, $angle: 0, $width: 120, $height: 16) {
+  $size: max($width, $height) * 1.5;
+  $offset-x: ($size - $width) * 0.5;
+  $offset-y: ($size - $height) * 0.5;
+  @return url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 #{$size} #{$size}'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='50%25' x2='100%25' y2='50%25'%3E%3Cstop offset='0%25' stop-color='rgb(#{$color})' stop-opacity='0.7'/%3E%3Cstop offset='50%25' stop-color='rgb(#{$color})' stop-opacity='0.3'/%3E%3Cstop offset='100%25' stop-color='rgb(#{$color})' stop-opacity='0.65'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='#{$offset-x}' y='#{$offset-y}' width='#{$width}' height='#{$height}' rx='4' fill='url(%23g)' transform='rotate(#{$angle} #{$size * 0.5} #{$size * 0.5})'/%3E%3C/svg%3E");
+}
+
+@function shape-svg($color, $path, $width: 80, $height: 80, $angle: 0) {
+  @return url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 #{$width} #{$height}'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='rgb(#{$color})' stop-opacity='0.7'/%3E%3Cstop offset='50%25' stop-color='rgb(#{$color})' stop-opacity='0.3'/%3E%3Cstop offset='100%25' stop-color='rgb(#{$color})' stop-opacity='0.6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='#{$path}' fill='none' stroke='url(%23g)' stroke-width='8' stroke-linecap='round' stroke-linejoin='round' transform='rotate(#{$angle} #{$width * 0.5} #{$height * 0.5})'/%3E%3C/svg%3E");
+}
+
+/*-- scss:defaults --*/
+
+$link-color: hl-color("pink");
+
+/*-- scss:rules --*/
+
+.reveal .slides section.paperless {
+  width: 100%;
+  height: 100% !important;
+  max-height: 100% !important;
+  left: 0 !important;
+  top: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.reveal .slides section {
+  width: 92%;
+  height: 86% !important;
+  max-height: 86% !important;
+  left: 4% !important;
+  top: 6% !important;
+  border-radius: 4px;
+  padding: 40px;
+  box-sizing: border-box;
+  overflow: hidden;
+  background-color: #fdfcfa;
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.03'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.1),
+    0 8px 24px rgba(0,0,0,0.15),
+    0 16px 48px rgba(0,0,0,0.1);
+}
+
+.highlight {
+  width: fit-content;
+  padding: 6px 12px;
+  position: relative;
+
+  &:before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: 3px 5px 3px 5px;
+    background:
+      conic-gradient(at 0 100%, rgb(var(--mark-color) / 100%) 1% , #fff0 3%) no-repeat 0 0 / 50% 50%,
+      conic-gradient(from 180deg at 100% 0, #fff0, rgb(var(--mark-color) / 100%) 1%, #fff0 4%) no-repeat 100% 100% / 50% 50%,
+      linear-gradient(var(--mark-bg-angle), rgb(var(--mark-color) / 60%), rgb(var(--mark-color) / 20%) 75%, rgb(var(--mark-color) / 55%)) no-repeat center / 100% 100%;
+  }
+
+  @each $name, $settings in $highlight-mark-settings {
+    &.mark-#{$name}:before {
+      rotate: map-get($settings, rotate);
+      scale: map-get($settings, scale);
+      transform: skew(map-get($settings, skew));
+      --mark-color: #{hl($name)};
+      --mark-bg-angle: #{map-get($settings, angle)};
+    }
+  }
+
+  &.mark-circle:before {
+    border-radius: 50%;
+    rotate: -2deg;
+    scale: 1.15;
+    --mark-color: #{hl("blue")};
+    --mark-bg-angle: 120deg;
+    background:
+      conic-gradient(from 45deg at 50% 50%,
+        rgb(var(--mark-color) / 70%) 0%,
+        rgb(var(--mark-color) / 30%) 25%,
+        rgb(var(--mark-color) / 60%) 50%,
+        rgb(var(--mark-color) / 25%) 75%,
+        rgb(var(--mark-color) / 70%) 100%
+      ) no-repeat center / 100% 100%;
+  }
+}
+
+.dash {
+  --dash-color: #{hl("yellow")};
+  --dash-width: 120px;
+  --dash-height: 16px;
+  --dash-angle: 0deg;
+
+  width: var(--dash-width);
+  height: var(--dash-height);
+  position: relative;
+
+  &:before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 2px 4px 2px 4px;
+    rotate: var(--dash-angle);
+    background:
+      conic-gradient(at 0 100%, rgb(var(--dash-color) / 100%) 1%, #fff0 3%) no-repeat 0 0 / 50% 50%,
+      conic-gradient(from 180deg at 100% 0, #fff0, rgb(var(--dash-color) / 100%) 1%, #fff0 4%) no-repeat 100% 100% / 50% 50%,
+      linear-gradient(90deg, rgb(var(--dash-color) / 70%), rgb(var(--dash-color) / 30%) 50%, rgb(var(--dash-color) / 65%)) no-repeat center / 100% 100%;
+  }
+
+  @each $name, $rgb in $highlight-colors {
+    &.#{$name} { --dash-color: #{hl($name)}; }
+  }
+
+  &.vertical {
+    width: var(--dash-height);
+    height: var(--dash-width);
+  }
+
+  &.diagonal {
+    --dash-angle: 45deg;
+    transform-origin: center;
+  }
+
+  &.diagonal-down {
+    --dash-angle: -45deg;
+    transform-origin: center;
+  }
+}
+
+.curve {
+  --curve-color: #{hl("yellow")};
+  --curve-size: 100px;
+  --curve-thickness: 12px;
+  --curve-angle: 0deg;
+
+  width: var(--curve-size);
+  height: var(--curve-size);
+  position: relative;
+
+  &:before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    rotate: var(--curve-angle);
+    border: var(--curve-thickness) solid transparent;
+    border-top-color: rgb(var(--curve-color) / 60%);
+    border-right-color: rgb(var(--curve-color) / 40%);
+    background: transparent;
+    mask: conic-gradient(from 0deg, #000 0%, #000 50%, transparent 50%);
+    -webkit-mask: conic-gradient(from 0deg, #000 0%, #000 50%, transparent 50%);
+  }
+
+  @each $name, $rgb in $highlight-colors {
+    &.#{$name} { --curve-color: #{hl($name)}; }
+  }
+}
+
+.arc {
+  --arc-color: #{hl("yellow")};
+  --arc-width: 120px;
+  --arc-height: 60px;
+  --arc-thickness: 10px;
+  --arc-angle: 0deg;
+
+  width: var(--arc-width);
+  height: var(--arc-height);
+  position: relative;
+
+  &:before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    rotate: var(--arc-angle);
+    border: var(--arc-thickness) solid transparent;
+    border-top-color: rgb(var(--arc-color) / 55%);
+    border-left-color: rgb(var(--arc-color) / 35%);
+    border-right-color: rgb(var(--arc-color) / 45%);
+    border-radius: 50%;
+    border-bottom: none;
+    height: 200%;
+    clip-path: inset(0 0 50% 0);
+  }
+
+  @each $name, $rgb in $highlight-colors {
+    &.#{$name} { --arc-color: #{hl($name)}; }
+  }
+
+  &.flip:before {
+    clip-path: inset(50% 0 0 0);
+    top: calc(-1 * var(--arc-height));
+  }
+}
+
+.circle {
+  --circle-size: 80px;
+  --circle-angle: 0deg;
+
+  width: var(--circle-size);
+  height: var(--circle-size);
+  position: relative;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    rotate: var(--circle-angle);
+    overflow: visible;
+  }
+
+  @each $name in map-keys($highlight-colors) {
+    &.#{$name} svg circle { stroke: url(#grad-#{$name}); }
+  }
+}
+
+.shape {
+  --shape-thickness: 10px;
+  --shape-angle: 0deg;
+
+  position: relative;
+  display: inline-block;
+
+  svg {
+    display: block;
+    overflow: visible;
+    rotate: var(--shape-angle);
+
+    path, line, polyline, polygon, rect, circle, ellipse {
+      fill: none;
+      stroke-width: var(--shape-thickness);
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  }
+
+  @each $name in map-keys($highlight-colors) {
+    &.#{$name} svg :is(path, line, polyline, polygon, rect, ellipse) {
+      stroke: url(#grad-#{$name});
+    }
+  }
+}
+
+.theme-slide1,
+.theme-slide2,
+.theme-slide3,
+.theme-slide4,
+.theme-slide5,
+.theme-slide6,
+.theme-slide7,
+.theme-slide8,
+.theme-slide9,
+.theme-slide10,
+.theme-slide11,
+.theme-slide12,
+.theme-slide13 {
+  &:is(.slide-background) {
+    background: #FFFFFF;
+  }
+}
+
+.paper-decoration {
+  svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+}
