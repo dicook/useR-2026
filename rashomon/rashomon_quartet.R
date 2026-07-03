@@ -101,10 +101,18 @@ predictors_detour <- detour(train,
                axes = TRUE,
                center = TRUE,
                size = 1,
-               scale_factor = 0.15,
+               scale_factor = 0.05,
                width = "1000px",
                height = "800px")
 saveRDS(predictors_detour, file="detour/predictors_detour.rds")
+
+render_gif(train[,2:4],
+           grand_tour(start = basis_random(3,2)),
+           display_xy(),
+           gif_file = "images/predictors.gif",
+           apf = 1/60,
+           frames = 400,
+           loop = FALSE)
 
 train_all_detour <- detour(train,
                             tour_aes(projection = c(y, x1:x3))) |>

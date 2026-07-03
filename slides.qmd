@@ -7,17 +7,20 @@ format:
     slide-number: c/t
     slide-tone: false
     theme: "custom.scss"
-    chalkboard: false
+    chalkboard: true
     code-fold: true
     highlight-style: github
+    code-line-numbers: true
     footer: "[https://github.com/dicook/useR-2026/](https://github.com/dicook/useR-2026/)"
     width: 1600
     height: 900
     margin: 0.05
-    embed-resources: true
+    embed-resources: false
 filters:
   - more-fragments
   - roughnotation
+execute:
+  echo: true 
 ---
 
 ```{r, include = FALSE}
@@ -165,29 +168,14 @@ In these examples the data was 2D, so knowing what it (and the model fit) looks 
 
 ## Outline
 
-- Setting up to explore: what data sets are needed:
-    - training
-    - testing
-    - true (if evaluating something theoretically)
-    - fitted model using dense simulated data, to examine boundary
-    - Only examine two classes
-- Rashomon quartet: 
-- Global v local interpretations
-- Explainers: Janith's images
-- Disagreement: which is more helpful
-- Radial tour to investigate boundary in local neighbourhood, after guided tour using variables suggested by explainers
-- Complications of limitations of sampling: sparse/dense, gaps or no gaps
-- silly splines, kumquat, kultarr
-
-
-
-- Global vs local interpretations
-- What data sets do you need to construct?
-- Rashomon quartet
-- Conflicts between local explanations
-- Viewing the boundaries in high-dimensions, using slice and manual tours
-- Relationship to interpretation
-- Wish list for tidy models
+- Secrets of the Rashomon quartet
+- Inspecting model fits
+    - Setting up the data for exploration
+    - Global v local interpretations
+    - Explainers 
+    - Visual toolbox
+    - Complications 
+- Wish list for [tidymodels](https://www.tidymodels.org/)
 - Resources
 
 
@@ -201,6 +189,7 @@ In these examples the data was 2D, so knowing what it (and the model fit) looks 
 **Anscombe's quartet**
 
 ```{r}
+#| label: anscombe1
 #| fig-width: 3
 #| fig-height: 3
 #| out-width: 80%
@@ -261,6 +250,7 @@ anscombe_smry |>
 ::: {.fragment}
 
 ```{r}
+#| label: rashomon1
 #| fig-width: 5
 #| fig-height: 2
 #| out-width: 90%
@@ -332,9 +322,10 @@ That is, tours, linear combinations of the variables shown as a movie.
 Start simply, with a scatterplot matrix of the predictors.
 
 ```{r}
+#| label: rashomon2
 #| fig-width: 4
 #| fig-height: 4
-#| out-width: 80%
+#| out-width: 70%
 train <- read_delim("rashomon/rq_train.csv", delim=";")
 ggscatmat(train, columns = 2:4)
 ```
@@ -352,7 +343,7 @@ ggscatmat(train, columns = 2:4)
 **Predictors** in a tour
 
 ::: {.f70}
-The predictors are strongly linearly associated. A recipe for expecting different model fits.
+The predictors are strongly linearly associated.
 :::
 
 ```{r}
@@ -360,15 +351,16 @@ The predictors are strongly linearly associated. A recipe for expecting differen
 #| fig-height: 8
 #| out-width: 80%
 #| echo: false
-htmltools::tags$style("
-  div.timelineContainer { left: 0px !important; right: 0px !important; }
-  div.timeline { left: 42px !important; right: 0px !important; }
-")
+#| eval: false
+#htmltools::tags$style("
+#  div.timelineContainer { left: 0px !important; right: 0px !important; }
+#  div.timeline { left: 42px !important; right: 0px !important; }
+#")
 predictors_detour <- readRDS("detour/predictors_detour.rds")
 predictors_detour
 ```
 
-
+![](images/predictors.gif)
 
 ::: 
 ::: {.column}
@@ -507,6 +499,7 @@ For *nonlinear models*, there is *no single projection* that can capture the fit
 :::: {.columns}
 ::: {.column}
 ```{r}
+#| label: trees
 #| echo: false
 data(trees)
 p_trees <- ggplot(trees, aes(x=Girth, y=Height)) +
@@ -772,18 +765,19 @@ Mostly, they agree, except counterfactuals for observation 2.
 ## Do this in four dimensions {.focus-slide}
 
 - Add two noise dimensions
-- Examine training data using a guided tour, and radial tour, possibly using a slice display
+- Quick check of training data (and test) training data using a grand tour, to see what model is based on
+- Fit model, create representation of fit
+- Use global importances to examine fit
 - Compute explainers
-- Use global values to set base projection
 - Zoom into to local area of observation
 - Use local explanations to vary the projection
 
-## Purely visualisation [(1/3)]{.f50}
+## Training data
 
 :::: {.columns}
 ::: {.column}
 
-[Viewing the training data, using a **guided tour**]{.f70}
+[Quick overview with a **grand tour**]{.f70}
 
 ```{r}
 #| fig-width: 10
@@ -792,8 +786,8 @@ Mostly, they agree, except counterfactuals for observation 2.
 #| out-width: 100%
 #| echo: false
 # Code for making animations is in graphics.R
-sp4_tr_detour <- readRDS("detour/sp4_tr_detour.rds")
-sp4_tr_detour
+sp4_tr_detour_gt <- readRDS("detour/sp4_tr_detour_gt.rds")
+sp4_tr_detour_gt
 ```
 
 
@@ -802,7 +796,7 @@ sp4_tr_detour
 
 ::: {.fragment}
 
-[**Grid** is better for boundary view]{.f70}
+[Focus on difference between classes with **guided tour**]{.f70}
 
 ```{r}
 #| fig-width: 10
@@ -810,8 +804,8 @@ sp4_tr_detour
 #| fig-align: center
 #| out-width: 100%
 #| echo: false
-sp4_true_detour <- readRDS("detour/sp4_true_detour.rds")
-sp4_true_detour
+sp4_tr_detour <- readRDS("detour/sp4_tr_detour.rds")
+sp4_tr_detour
 ```
 
 :::
@@ -819,12 +813,12 @@ sp4_true_detour
 :::
 ::::
 
-## Purely visualisation [(2/3)]{.f50}
+## Examine the fitted model
 
 :::: {.columns}
 ::: {.column}
 
-[Projection]{.f70}
+[Viewing the fitted model, using a **guided tour**]{.f70}
 
 ```{r}
 #| fig-width: 10
@@ -832,7 +826,6 @@ sp4_true_detour
 #| fig-align: center
 #| out-width: 100%
 #| echo: false
-# Code for making animations is in graphics.R
 sp4_true_detour <- readRDS("detour/sp4_true_detour.rds")
 sp4_true_detour
 ```
@@ -860,12 +853,49 @@ sp4_true_detour_slice
 :::
 ::::
 
-## Purely visualisation [(3/3)]{.f50}
+## Compute importances
 
 :::: {.columns}
 ::: {.column}
 
-[Radial tour, $x_1$ removed. $x_1$ **not** important.]{.f70}
+Points of interest are:
+
+```{r}
+#| label: pt-explainers4
+#| echo: false
+# Code in explainers4.R
+load("data/sp4_pt.rda")
+pt |>
+  mutate(id = c(1,2)) |>
+  select(id, x1:class) |>
+  mutate(class = fct_recode(class, yellow = "Above", green = "Below")) |>
+  mutate(x1 = label_number(accuracy = 0.2)(x1),
+         x2 = label_number(accuracy = 0.2)(x2),
+         x3 = label_number(accuracy = 0.2)(x3),
+         x4 = label_number(accuracy = 0.2)(x4)) |>
+  kable(, format = "html",
+        align = c("c", "r", "r", "r", "r", "l"),
+        col.names = c("id", "x1", "x2", "x3", "x4", "class")) |>
+    kable_styling(full_width = FALSE, font_size = 30) 
+```
+
+And the explainers are:
+
+```{r}
+#| label: explainers4
+#| echo: false
+load("data/explainers4.rda")
+kable(sp4_explainers, format = "html") |>
+  kable_styling(full_width = FALSE, font_size = 30) |>
+  row_spec(0, extra_css = "border-bottom: 2px solid black;") |>
+  row_spec(1, extra_css = "border-bottom: 2px solid black;") |>
+  row_spec(3, extra_css = "border-bottom: 2px solid black;") |>
+  row_spec(5, extra_css = "border-bottom: 2px solid black;")
+```
+:::
+::: {.column}
+
+Location of points in the training data
 
 ```{r}
 #| fig-width: 10
@@ -873,15 +903,35 @@ sp4_true_detour_slice
 #| fig-align: center
 #| out-width: 100%
 #| echo: false
-sp4_true_detour_x1 <- readRDS("detour/sp4_true_detour_x1.rds")
-sp4_true_detour_x1
+sp4_tr_detour_pts <- readRDS("detour/sp4_tr_detour_pts.rds")
+sp4_tr_detour_pts
+```
+
+:::
+::::
+
+## Explore variable importance (globally) 
+
+:::: {.columns}
+::: {.column}
+
+[Point 1, radial tour, $x_2$ removed.]{.f70}
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| fig-align: center
+#| out-width: 100%
+#| echo: false
+sp4_d1_detour_x2 <- readRDS("detour/sp4_d1_detour_x2.rds")
+sp4_d1_detour_x2
 ```
 
 :::
 ::: {.column}
 
 
-[Radial tour, $x_2$ removed: $x_2$ is **very important**.]{.f70}
+[Point 1, radial tour, $x_4$ removed.]{.f70}
 
 ```{r}
 #| fig-width: 10
@@ -889,14 +939,93 @@ sp4_true_detour_x1
 #| fig-align: center
 #| out-width: 100%
 #| echo: false
-sp4_true_detour_x2 <- readRDS("detour/sp4_true_detour_x2.rds")
-sp4_true_detour_x2
+sp4_d1_detour_x4 <- readRDS("detour/sp4_d1_detour_x4.rds")
+sp4_d1_detour_x4
+```
+
+:::
+::::
+
+## Explore variable importance (locally) [(1/2)]{.f50} 
+
+:::: {.columns}
+::: {.column}
+
+
+[Point 1, radial tour, $x_2$ removed.]{.f70}
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| fig-align: center
+#| out-width: 100%
+#| echo: false
+sp4_d1_detour_x2 <- readRDS("detour/sp4_d1_detour_x2.rds")
+sp4_d1_detour_x2
+```
+
+:::
+::: {.column}
+
+
+
+[Point 1, radial tour, $x_4$ removed.]{.f70}
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| fig-align: center
+#| out-width: 100%
+#| echo: false
+sp4_d1_detour_x4 <- readRDS("detour/sp4_d1_detour_x4.rds")
+sp4_d1_detour_x4
+```
+
+
+:::
+::::
+
+## Explore variable importance (locally) [(2/2)]{.f50}
+
+:::: {.columns}
+::: {.column}
+
+
+[Point 2, radial tour, $x_2$ removed.]{.f70}
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| fig-align: center
+#| out-width: 100%
+#| echo: false
+sp4_d2_detour_x2 <- readRDS("detour/sp4_d2_detour_x2.rds")
+sp4_d2_detour_x2
+```
+
+:::
+::: {.column}
+
+
+
+[Point 2, radial tour, $x_4$ removed.]{.f70}
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| fig-align: center
+#| out-width: 100%
+#| echo: false
+sp4_d2_detour_x4 <- readRDS("detour/sp4_d2_detour_x4.rds")
+sp4_d2_detour_x4
 ```
 
 :::
 ::::
 
 ## Inside the tour toolbox {.center}
+
+What we learned was that the **boundary**, [*local to each point was quite different*]{.fragment .bounce}, and actually only [*one variable at each*]{.fragment .bounce} was most [*important*]{.fragment .bounce} in **distinguishing** it from the **other class**.
 
 ::: {.narrow9}
 ::: {.info}
@@ -912,110 +1041,151 @@ sp4_true_detour_x2
 :::
 :::
 
-## Explainers
+## Complications
 
-## What data sets do you need to construct?
+:::: {.columns}
+::: {.column}
 
-For each we need **observed** and **predicted** class
+- many more variables
+- dependencies between variables
+- distribution of predictors: sparse/dense, non-uniform sampling
 
-- **Data**: divided into the usual sets, to fit the model to one and assess it on the other
-  - *Training data*: Can help see model form.
-  - *Test data*: Errors help to understand fitted model peculiarities.
-- **Model fitted to data domain**: This provides a more complete view of the fitted model from which to understand its strengths and quirks.
-- **The Oracle**: In a theoretical framework, we have a pristine environment within which to examine model behaviour.
+Most of these are surmountable, except for bad data.
+
+:::
+::: {.column}
+:::
+::::
+
+## tidymodels {.topic-slide}
+
+## It is delightful!
+
+:::: {.columns}
+::: {.column width="30%"}
+
+![](images/tidymodels.png)
+::: 
+::: {.column width="70%"}
+
+::: {.panel-tabset}
+
+## previously
+
+::: {.f70}
+Each package has a different API<br>
+Switching models means rewriting
+your entire training block
+:::
 
 ```{r}
-#| fig-width: 12
-#| fig-height: 3
-#| out-width: 100%
-#| fig-alt: "Scatterplots ..."
 #| eval: false
-d_train <- create_data("data/coords3.json", n_samples = 900, seed = 117) |>
-    mutate(class = factor(class))
-d_test <- create_data("data/coords3.json", n_samples = 300, seed = 124) |>
-    mutate(class = factor(class))
-d_domain <- create_data("data/coords3.json", n_samples = 10000, seed = 421)  |>
-    mutate(class = factor(class))
-d_rf <- randomForest::randomForest(class~., data=d_train)
-d_train <- d_train |>
-    mutate(pcl = d_rf$predicted) |>
-    mutate(err = factor(if_else(class != pcl, "yes", "no")))
-d_test <- d_test |>
-    mutate(pcl = predict(d_rf, d_test)) |>
-    mutate(err = factor(if_else(class != pcl, "yes", "no")))
-d_domain <- d_domain |>
-    mutate(pcl = predict(d_rf, d_domain, 
-      type = "prob")[,1]) 
-p_train <- ggplot(d_train, 
-                  aes(x, y, 
-                    colour = class, 
-                    shape = err)) + 
-    geom_point() +
-    scale_shape_manual("error", values=c(1, 19)) +
-#    scale_colour_discrete_divergingx(palette = "SunsetDark") +
-  scale_colour_ochre(palette = "tasmania") +
-    ggtitle("training") +
-    theme(
-        legend.position = "none",
-        axis.text = element_blank(),
-        axis.title = element_blank(),
-        axis.ticks = element_blank())
- p_test <- ggplot(d_test, 
-                  aes(x, y, 
-                    colour = class, 
-                    shape = err)) + 
-    geom_point() +
-    scale_shape_manual("error", values=c(1, 19)) +
-    #scale_colour_discrete_divergingx(palette = "SunsetDark") +
-  scale_colour_ochre(palette = "tasmania") +
-    ggtitle("test") +
-    theme(
-        legend.position = "none",
-        axis.text = element_blank(),
-        axis.title = element_blank(),
-        axis.ticks = element_blank()) 
-# divergingx_hcl(2, "SunsetDark")        
-p_domain <- ggplot(d_domain, 
-                   aes(x, y, 
-                     colour = pcl)) +  
-    geom_point(alpha = 0.7, cex=0.8) +
-#    scale_colour_gradient2(high = "#3B99B1",
-#     low = "#F5191C", midpoint=0.5) +
-    scale_colour_gradient2(high = "#a84830",
-     low = "#d89060", midpoint=0.5) +
-    ggtitle("fitted model") +
-    theme(
-        legend.position = "none",
-        axis.text = element_blank(),
-        axis.title = element_blank(),
-        axis.ticks = element_blank())  
-p_truth <- ggplot(d_domain, 
-                   aes(x, y, 
-                     colour = class)) +  
-    geom_point(alpha=0.7, cex=0.8) +
-    scale_colour_discrete_divergingx(palette = "Zissou 1") +
-    ggtitle("truth") +
-    theme(
-        legend.position = "none",
-        axis.text = element_blank(),
-        axis.title = element_blank(),
-        axis.ticks = element_blank())          
-p_train + p_test + p_domain + p_truth + plot_layout(ncol=4)    
+#| code-fold: false
+# Using glmnet for logistic regression
+library(glmnet)
+x_train <- model.matrix(outcome ~ ., train)[,-1]
+y_train <- train$outcome
+fit_lasso <- cv.glmnet(x_train, y_train,
+                        family = "binomial")
+preds_lasso <- predict(fit_lasso, x_test,
+  s = "lambda.min", type = "response")
+
+# Now switch to random forest?
+# Completely different API…
+library(randomForest)
+fit_rf <- randomForest(outcome ~ ., data = train,
+                        ntree = 500)
+preds_rf <- predict(fit_rf, test, type = "prob")[,2]
+
+# And XGBoost? Totally different again…
+library(xgboost)
+dtrain <- xgb.DMatrix(x_train, label = y_train)
+fit_xgb <- xgb.train(list(objective="binary:logistic"),
+                     dtrain, nrounds = 100)
+preds_xgb <- predict(fit_xgb, xgb.DMatrix(x_test))
 ```
 
-## Dependencies
+## tidymodels — parsnip
 
-When multiple variables interact
+::: {.f70}
+With tidymodels — parsnip<br>
+One consistent interface regardless of
+the underlying engine. Swap with one line.
+:::
 
-Why is it so difficult to interpret classifiers of the penguins data
+```{r}
+#| eval: false
+#| code-fold: false
+
+# Logistic regression (glmnet engine)
+spec <- logistic_reg(penalty = tune()) |>
+  set_engine("glmnet")
+
+# Switch to random forest? Change 2 lines.
+spec <- rand_forest(trees = 500) |>
+  set_engine("randomForest") |>
+  set_mode("classification")
+
+# Switch to XGBoost? Same pattern.
+spec <- boost_tree(trees = 100) |>
+  set_engine("xgboost") |>
+  set_mode("classification")
+
+# The rest of your code never changes —
+# fit(), predict(), and metrics work
+# identically for all three.
+fit <- fit(spec, outcome ~ ., data = train)
+preds <- predict(fit, test, type = "prob")
+```
+:::
+
+::: 
+::::
+
+## Better integration with visualisation for diagnostics
 
 
-## Visual tools
+::: {.panel-tabset}
 
-- Explainers, to help guide the projection sequence
-- Tour projections saved sequence, guided or local, to use for the different data forms
-- Slices instead of projection
-- Zoom
+## pre-processing
+
+```{.r code-line-numbers="|1-3|4-8|9-12"}
+rec <- recipe(outcome ~ ., data = train) |>
+  step_BoxCox(all_numeric_predictors()) |>
+  step_other(all_nominal_predictors(), threshold = .1) 
+
+# Extract the data as it exists after each step
+rec |>
+  prep() |>
+  taste(after = c(1,2))
+
+# Then plot each of the data 
+# before and 
+# after each step
+```
+
+<br>
+
+`taste()` would allow looking at what we are doing to the data at any step in the workflow. 
+
+## fit
+
+```{.r code-line-numbers="|1-4|5-7"}
+fit <- workflow() |>
+  add_recipe(rec) |>
+  add_model(spec) |>
+  fit(data = train)
+
+fit |>
+  plate(train, n = 10000)  # random uniform grid + predictions + more
+```
+
+<br>
+
+`plate()` would operate like the [classifly](http://had.co.nz/classifly/) package, and include values such as `advantage` (measuring distance from boundary for classification) and `boundary` (marking points near a boundary), ...
+
+:::
+
 
 <!--
 ## Testing more fragments
@@ -1031,48 +1201,50 @@ This is [word]{.fragment .bounce} bounce.
 [highlighted word]{.rn-fragment}
 -->
 
-## Conclusions
+## Summary
 
+- Visual tools can help understand what the black box is doing. Let's work with our eyes open!
 - There is so much scope for research, methodology and software for explaining model.
-
-- Power to the people!
-
-- Visual tools can help. Let's work with our eyes open!
-
-
-- Make it easier to deconstruct your model:
+- For developers: Make it easier to deconstruct your model:
     - NNs and ensembles: models at nodes, predictions, weights
     - Importance scores
-- Beware non-uniform sampling. If predictors are not uniformly sampled, bets on models are off the table.
-- Covariance between variables.
+- [Give power to the people!]{.rn-fragment}
 
 ## Resources
+
+::: {.f80}
 
 :::: {.columns}
 ::: {.column width="50%"}
 
-::: {.f70}
 
-**`mulgar` book**  
-[https://dicook.github.io/mulgar_book/](https://dicook.github.io/mulgar_book/) 
+Visualisation and software
 
-- https://ema.drwhy.ai/
-- https://bradleyboehmke.github.io/HOML/
-- https://christophm.github.io/interpretable-ml-book/
-- https://www.tmwr.org/
-- mulgar book
-- Model in the data space
+- [Cook & Laa (2025) Interactively exploring high-dimensional data and models in R](https://dicook.github.io/mulgar_book/) 
+- [Wickham et al (2015) Removing the Blindfold](https://doi.org/10.1002/sam.11271)
+- [tourr](https://ggobi.github.io/tourr/): Algorithms to generate sequences of linear projections
+- [detourr](https://casperhart.github.io/detourr/): Portable and performant tours
 
 :::
+::: {.column width="50%"}
+
+
+Machine learning and explainability
+
+- [Beicek & Burzykowski (2020) Explanatory Model Analysis](https://ema.drwhy.ai/)
+- [Boehmke & Greenwell (2020) Hands-On Machine Learning with R](https://bradleyboehmke.github.io/HOML/)
+- [Molnar (2025) Interpretable Machine Learning](https://christophm.github.io/interpretable-ml-book/)
+- [Kuhn & Silge (2023) Tidy Modeling with R](https://www.tmwr.org/)
+
 :::
 ::::
 
 <br><br>
 
-Slides made in [Quarto](https://quarto.org/), with code included.  
+Slides made in [Quarto](https://quarto.org/), with code included. Cool aspects [due to our Hacky Hour tutorial by the PhD students](https://numbat.space/posts/quarto-slide-extension/) describing available thanks to [Emil Hvitfeldt](emilhvitfeldt.github.io/quarto-revealjs-more-fragments)
 
 <br>
 
 <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
 
-
+:::
