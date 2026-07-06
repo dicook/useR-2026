@@ -99,10 +99,15 @@ Wickham et al (2015) Removing the Blindfold [https://doi.org/10.1002/sam.11271](
 
 ## learn
 
-- A simple parsimonious model is possible, with the right choice of random seed.
+- Something as simple as the random number seed, can dramatically affect the model fit.
+- A **simple parsimonious model is possible**, with the right choice of random seed.
 - In a more complex architecture, most nodes are indolent. 
 
-We need to know what the data looks like to inform the architecture.
+::: {.info .narrow6}
+
+Knowing what the data looks like helps inform the architecture.
+
+:::
 
 :::
 
@@ -168,6 +173,9 @@ In these examples the data was 2D, so knowing what it (and the model fit) looks 
 
 ## Outline
 
+:::: {.columns}
+::: {.column width="60%"}
+
 - Secrets of the Rashomon quartet
 - Inspecting model fits
     - Setting up the data for exploration
@@ -176,8 +184,13 @@ In these examples the data was 2D, so knowing what it (and the model fit) looks 
     - Visual toolbox
     - Complications 
 - Wish list for [tidymodels](https://www.tidymodels.org/)
-- Resources
+- Summary and resources
+:::
+::: {.column width="40%"}
 
+![](https://dicook.github.io/mulgar_book/images/mulga-seeds3.png){width="500px" alt}
+:::
+::::
 
 ## Rashomon Quartet {.topic-slide}
 
@@ -497,10 +510,13 @@ For *nonlinear models*, there is *no single projection* that can capture the fit
 ## Remember the good old days? 
 
 :::: {.columns}
-::: {.column}
+::: {.column width="40%"}
 ```{r}
 #| label: trees
 #| echo: false
+#| fig-width: 5
+#| fig-height: 4
+#| out-width: 90%
 data(trees)
 p_trees <- ggplot(trees, aes(x=Girth, y=Height)) +
   geom_point(colour = "#435d42") +
@@ -516,7 +532,7 @@ p_trees + geom_abline(
 ```
 
 :::
-::: {.column}
+::: {.column width="60%"}
 
 
 ::: {.f70}
@@ -552,7 +568,7 @@ INTERPRETATION
 
 ::: {.narrow9}
 
-Global explainability 
+[**Global**]{.rn-fragment} explainability 
 
 - magnitude of coefficients
 - partial dependence plots
@@ -565,7 +581,7 @@ applies to the entire data, but practically only if the model is a linear model.
 :::
 ::: {.column}
 
-Local explainability
+[**Local**]{.rn-fragment} explainability
 
 - **LIME**: fits a linear model locally
 - **Shapley values**: change in fit if predictor is removed
@@ -602,13 +618,14 @@ Used for:
 - describing the model's nonlinearity (when computed for several nearby points)
 - supporting or debunking predictions
 - possibly even in legal challenges
+- [ultimately get a peek into black box models]{.fragment .letters .fadeIn}
 
 :::
 
 ::: {.fragment}
-BUT, just like models, some explainers might be more suitable, given particular observed data.
+BUT, just like models, some explainers might be more **suitable**, given particular **observed data**.
 
-[SO, explainers might give contradictory explanations for any observation. You may be even more confused at this point.]{.rn-fragment}
+SO, explainers might give [contradictory explanations]{.rn-fragment} for any observation. You may be even become more confused at this point.
 
 :::
 
@@ -616,10 +633,13 @@ BUT, just like models, some explainers might be more suitable, given particular 
 
 ## Outline of steps to explain the explainers
 
+For categorical response - classification problem.
+
 1. Simulate 2D data with two classes and nonlinear boundary.
 2. Show how explainers work on 2D data.
 3. Add noise variables to make multivariate data. [(Could also rotate structure into noise to hide it, but that is too much for today).]{.f70}
-4. Examine the (local) boundary between classes in the fitted model, relative to the explanations. Which provide the better explanations?
+4. Examine the (local) boundary between classes in the fitted model, relative to the explanations. 
+5. Do the explanations match what we can see about the local boundary, relative to the predictors? 
 
 ## Set up the data: Training, test, fit (and true) data sets {.center}
 
@@ -1203,12 +1223,29 @@ This is [word]{.fragment .bounce} bounce.
 
 ## Summary
 
-- Visual tools can help understand what the black box is doing. Let's work with our eyes open!
-- There is so much scope for research, methodology and software for explaining model.
-- For developers: Make it easier to deconstruct your model:
+:::: {.columns}
+::: {.column width="60%"}
+
+::: .{narrow9}
+
+- Visual tools can help **understand** what the black box is doing. Let's work with our eyes open!
+- There is so much **scope** for research, methodology and software for explaining model.
+- *For developers*: Make it easier to **deconstruct** your model:
     - NNs and ensembles: models at nodes, predictions, weights
     - Importance scores
 - [Give power to the people!]{.rn-fragment}
+
+:::
+
+:::
+::: {.column width="40%"}
+
+![](images/IMG_0124_mulga Gt Victoria Desert.jpeg){width="500px" fig.align="center"}
+
+[Photo: Mulga, Great Victoria Desert, courtesy of Lyn Cook]{.f50}
+
+:::
+::::
 
 ## Resources
 
@@ -1224,6 +1261,7 @@ Visualisation and software
 - [Wickham et al (2015) Removing the Blindfold](https://doi.org/10.1002/sam.11271)
 - [tourr](https://ggobi.github.io/tourr/): Algorithms to generate sequences of linear projections
 - [detourr](https://casperhart.github.io/detourr/): Portable and performant tours
+- emerging packages: [sillysplines](https://janithwanni.github.io/sillysplines/), [kumquat](https://janithwanni.github.io/kumquat/), [kultarr](https://janithwanni.github.io/kultarr/).
 
 :::
 ::: {.column width="50%"}
@@ -1231,7 +1269,7 @@ Visualisation and software
 
 Machine learning and explainability
 
-- [Beicek & Burzykowski (2020) Explanatory Model Analysis](https://ema.drwhy.ai/)
+- [Biecek & Burzykowski (2020) Explanatory Model Analysis](https://ema.drwhy.ai/)
 - [Boehmke & Greenwell (2020) Hands-On Machine Learning with R](https://bradleyboehmke.github.io/HOML/)
 - [Molnar (2025) Interpretable Machine Learning](https://christophm.github.io/interpretable-ml-book/)
 - [Kuhn & Silge (2023) Tidy Modeling with R](https://www.tmwr.org/)
