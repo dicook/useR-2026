@@ -1258,7 +1258,7 @@ This is [word]{.fragment .bounce} bounce.
 - There is so much **scope** for research, methodology and software for explaining model.
 - *For developers*: Make it easier to **deconstruct** your model:
     - NNs and ensembles: models at nodes, predictions, weights
-    - Importance scores
+    - Importance scores.
 - [Give power to the people!]{.rn-fragment}
 
 :::
