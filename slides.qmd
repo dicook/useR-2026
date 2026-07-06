@@ -209,7 +209,7 @@ In these examples the data was 2D, so knowing what it (and the model fit) looks 
 #| fig-height: 3
 #| out-width: 80%
 #| echo: false
-#| fig-alt: "Famous classic Ancombe's quartet of scatterplots: clockwise from top left to bottom left, positive moderate association, strong non-linear association, linear and an outlier, vertical and an outlier. There are 11 green points in each, and a yellow regression line overlaid."
+#| fig-alt: "Famous classic Ancombe's quartet of scatterplots: clockwise from top left to bottom left, positive moderate association, strong nonlinear association, linear and an outlier, vertical and an outlier. There are 11 green points in each, and a yellow regression line overlaid."
 anscombe_m <- data.frame()
 
 for (i in 1:4)
