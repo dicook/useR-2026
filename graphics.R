@@ -115,7 +115,7 @@ sp4_true_detour_x1 <- detour(sp4_data_true,
              scale_factor = 0.4,
              slice_relative_volume = 0.05,
              palette = ochre_clrs)
-saveRDS(sp4_true_detour_x1, file="detour/sp4_true_detour_x1.rds")
+saveRDS(sp4_fitted_detour_x1, file="detour/sp4_fitted_detour_x1.rds")
 
 sp4_true_detour_x2 <- detour(sp4_data_true,
                              tour_aes(projection = x1:x4, 
@@ -126,7 +126,7 @@ sp4_true_detour_x2 <- detour(sp4_data_true,
              scale_factor = 0.4,
              slice_relative_volume = 0.05,
              palette = ochre_clrs)
-saveRDS(sp4_true_detour_x2, file="detour/sp4_true_detour_x2.rds")
+saveRDS(sp4_fitted_detour_x2, file="detour/sp4_fitted_detour_x2.rds")
 
 # Local views
 load("data/sp4_d1.rda")

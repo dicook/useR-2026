@@ -77,7 +77,7 @@ Wickham et al (2015) Removing the Blindfold [https://doi.org/10.1002/sam.11271](
 :::
 ::: {.column width="70%"}
 
-![](images/wiggly-nnet.png){width="1000px"}
+![](images/wiggly-nnet.png){width="1000px" fig-alt="Three scatterplots labelled 2, 3, 4, with prediction accuracy on the x axis and value of the fitting crieterion on the y axis. The black points in each plot are strongly negatively correlated. From plot 2 to plot 4, there is an increase of points in the bottom right corner, which indicates the best model fits."}
 
 :::
 ::::
@@ -87,7 +87,7 @@ Wickham et al (2015) Removing the Blindfold [https://doi.org/10.1002/sam.11271](
 :::: {.columns}
 ::: {.column width="60%"}
 
-![](images/wiggly-models.png){width="1000px"}
+![](images/wiggly-models.png){width="1000px" fig-alt="A three by four grid of lineplots, labelled 2,3,4 on the rows, and sub-linear, linear, super-linear, and excellent on the columns. The lines are all running from lower left to upper right, some are linear and some have zig-zags. The lines in the excellent and 4 cell are all zig-zagged, because these represent the boundaries that are best for separating the two classes. "}
 :::
 ::: {.column width="40%"}
 
@@ -101,7 +101,6 @@ Wickham et al (2015) Removing the Blindfold [https://doi.org/10.1002/sam.11271](
 
 - Something as simple as the random number seed, can dramatically affect the model fit.
 - A **simple parsimonious model is possible**, with the right choice of random seed.
-- In a more complex architecture, most nodes are indolent. 
 
 ::: {.info .narrow6}
 
@@ -133,25 +132,28 @@ See [https://playground.tensorflow.org/](https://playground.tensorflow.org/) to 
 
 ## one fit
 
-![](images/tensorflow1.png){width="1200px" fig-align="center"}
+![](images/tensorflow1.png){width="1200px" fig-align="center" fig-alt="Screenshot of the website, where the data chosen has four squares of colour (classes) in each corner: orange at top left and lower right, and blue at bottom left and upper right. The model fit, using two hidden layer nodes, shows a band of blue running from bottom left to upper right, which mismatches the true boundaries. The test loss is 0.208."}
 
 ## second fit
 
-![](images/tensorflow2.png){width="1200px" fig-align="center"}
+![](images/tensorflow2.png){width="1200px" fig-align="center" fig-alt="Screenshot of the website, showing same data as previous plot. This model fit, using two hidden layer nodes, pretty closely matches the true boundary. The test loss is 0.001."}
 
 ## third fit
 
-![](images/tensorflow3.png){width="1200px" fig-align="center"}
+![](images/tensorflow3.png){width="1200px" fig-align="center" fig-align="center" fig-alt="Screenshot of the website, showing same data as previous plot. This model fit, using six hidden layer nodes, pretty closely matches the true boundary. The test loss is 0.000. But most nodes are not uniquely contributing to the boundary."}
 
 ## learn
 
 
-- A simple parsimonious model is possible, with the right choice of random seed.
+- Something as simple as the random number seed, STILL can dramatically affect the model fit.
+- A **simple parsimonious model is possible**, with the right choice of random seed.
 - In a more complex architecture, most nodes are indolent. 
 
-We need to know what the data looks like to inform the architecture.
+::: {.info .narrow6}
 
+Knowing what the data looks like helps inform the architecture.
 
+:::
 
 :::
 
@@ -188,7 +190,7 @@ In these examples the data was 2D, so knowing what it (and the model fit) looks 
 :::
 ::: {.column width="40%"}
 
-![](https://dicook.github.io/mulgar_book/images/mulga-seeds3.png){width="500px" alt}
+![](https://dicook.github.io/mulgar_book/images/mulga-seeds3.png){width="500px" fig-alt="Hand-sketched mulga seed pods."}
 :::
 ::::
 
@@ -207,6 +209,7 @@ In these examples the data was 2D, so knowing what it (and the model fit) looks 
 #| fig-height: 3
 #| out-width: 80%
 #| echo: false
+#| fig-alt: "Famous classic Ancombe's quartet of scatterplots: clockwise from top left to bottom left, positive moderate association, strong non-linear association, linear and an outlier, vertical and an outlier. There are 11 green points in each, and a yellow regression line overlaid."
 anscombe_m <- data.frame()
 
 for (i in 1:4)
@@ -217,8 +220,10 @@ for (i in 1:4)
 ggplot(anscombe_m, aes(x=x, y=y)) + 
   geom_smooth(method="lm", colour=ochre_clrs[1],
               fullrange=TRUE, se=F) +
-  geom_point(size=1, colour=ochre_clrs[2]) + 
-  facet_wrap(~set, ncol=2) +
+  geom_point(size=1.5, colour=ochre_clrs[2], alpha=0.7) + 
+  facet_wrap(~set, ncol=2, scales="free") +
+  scale_x_continuous(expand = expansion(mult = 0.1)) +
+  scale_y_continuous(expand = expansion(mult = 0.1)) +
   theme_bw() + 
   theme(panel.background = element_rect(fill = 'transparent', colour = "black"),
         axis.text = element_blank())
@@ -267,6 +272,7 @@ anscombe_smry |>
 #| fig-width: 5
 #| fig-height: 2
 #| out-width: 90%
+#| fig-alt: "Three plots labelled Predicted on the y axis and x1, x2, x3, respectively on the x axis. In each there are four curves: solid dark purple is LM, short dash light purple is DT, long dash green is RF, and long dahs and space light green is NN. The LM is straight in all, with strong positive slope in the first, smaller positive and negative slopes, respectively in the other two. The other models all have more of a flat S shape."
 load("rashomon/pd_dt.rda")
 load("rashomon/pd_rf.rda")
 load("rashomon/pd_lm.rda")
@@ -339,6 +345,7 @@ Start simply, with a scatterplot matrix of the predictors.
 #| fig-width: 4
 #| fig-height: 4
 #| out-width: 70%
+#| fig-alt: "Scatterplot matrix of x1, x2, x3. All the scatterplots show strong positive linear association, and the correlation for each is 0.9."
 train <- read_delim("rashomon/rq_train.csv", delim=";")
 ggscatmat(train, columns = 2:4)
 ```
@@ -373,7 +380,7 @@ predictors_detour <- readRDS("detour/predictors_detour.rds")
 predictors_detour
 ```
 
-![](images/predictors.gif)
+![](images/predictors.gif){fig-alt="Animation showing many 2D linear projections of x1-x3 as scatterplots. The shape is elliptical in 3D."}
 
 ::: 
 ::: {.column}
@@ -393,6 +400,7 @@ There's a very slight nonlinear association.
 #| fig-height: 8
 #| out-width: 80%
 #| echo: false
+#| fig-alt: "Very similar to the last animation, except now there is a slight curl of points at each end of the ellipse."
 train_all_detour <- readRDS("detour/train_all_detour.rds")
 train_all_detour
 ```
@@ -417,6 +425,7 @@ Let's make this more conventional, **response on the vertical axis** and predict
 #| fig-height: 8
 #| out-width: 100%
 #| echo: false
+#| fig-alt: "Same as the last animation, except that the y axis is vertical, and the x axis shows a linear projection of the three predictors."
 htmltools::tags$style("
   div.timelineContainer { left: 0px !important; right: 0px !important; }
   div.timeline { left: 42px !important; right: 0px !important; }
@@ -438,6 +447,7 @@ Compare **fitted**  (black) with **observed**  (yellow) values: LM.
 #| fig-height: 8
 #| out-width: 100%
 #| echo: false
+#| fig-alt: "Same as the last animation, except that the points corresponding to training data are yellow, and purple points correspond to their fitted values on the LM model. In one combination of x1 and x2 the fitted values perfectly lie on a single line."
 train_lm_detour <- readRDS("detour/train_lm_detour.rds")
 train_lm_detour
 ```
@@ -461,6 +471,7 @@ Compare **fitted** (black) with **observed** (yellow) values: NN.
 #| fig-height: 8
 #| out-width: 100%
 #| echo: false
+#| fig-alt: "Same as the last animation, except that the purple points correspond to the fitted values of a NN model. The model has some curvature, doesn't ever collapse into a single curved line, and the tails have multiple bands."
 train_nn_detour <- readRDS("detour/train_nn_detour.rds")
 train_nn_detour
 ```
@@ -485,6 +496,7 @@ The NN model captures the small nonlinear relationship, but it has some strange 
 #| fig-height: 8
 #| out-width: 100%
 #| echo: false
+#| fig-alt: "Same as the last animation, except that the purple points correspond to the fitted values of a NN model, and green correspond to those of the LM model. The difference between models is in the extremes, where we can see the NN has curvature and the LM does not."
 model_detour3 <- readRDS("detour/model_detour3.rds")
 model_detour3
 ```
@@ -558,7 +570,7 @@ INTERPRETATION
 :::
 ::::
 
-![](images/breakfast-market.jpg){width="800px" fig-align="center"}
+![](images/breakfast-market.jpg){width="800px" fig-align="center" fig-alt="View of a breakfast market in Warsaw. There is a little fence around trees surrounding white tent stalls and deck chairs on the grass."}
 
 ## What are explainers?
 
@@ -647,6 +659,7 @@ For categorical response - classification problem.
 #| label: data-setup
 #| echo: true
 #| fig-asp: 0.3
+#| fig-alt: "Four plots of two predictors in a row. Scatterplots show training and test sets. A fine grid of points shows the fitted and the true model, for a two classes yellow and green. The true model has a zig zag pattern. The fitted model is less jagged and has some small islands, so does not perfectly capture the true boundary."
 # Data is generated in data.R
 load("data/sp_data_tr.rda")
 load("data/sp_data_ts.rda")
@@ -709,6 +722,7 @@ These are the points we'll explain
 #| fig-width: 3
 #| fig-height: 3
 #| out-width: 70%
+#| fig-alt: "Plot of the fitted model with two points labelled 1 and 2 drawn. Point 1 is at (0,0) which is the yellow area, and point 2 is half-way towards the lower left corner, in the green region. Both points are close to the boundary."
 # Code for calculations is in explainers.R
 load("data/explainers1.rda")
 load("data/sp_pt_cf.rda")
@@ -741,6 +755,7 @@ p +
 #| fig-width: 3
 #| fig-height: 3
 #| out-width: 70%
+#| fig-alt: "Same as the previous plot, but now there are two additional points, which are the counterfctuals for points 1 and 2. These are connected by line sgements. The counterfactual for point 1 is down and a little the the right, into the green region. For point 2 it is up, and slightly to the righ, in the yellow region."
 
 p + 
   geom_point(data=sp_pt_cf, aes(x=x, y=y, shape=type), 
@@ -804,6 +819,7 @@ Mostly, they agree, except counterfactuals for observation 2.
 #| fig-height: 8
 #| fig-align: center
 #| out-width: 100%
+#| fig-alt: "Animation showing 2D projections of the 4D training data as scatterplots. About half the points are the yellow group and half the green group. The projection coefficients are shown as four axes labelled x1, x2, x3, x4. In some projections separations between the yellow and green classes can be seen."
 #| echo: false
 # Code for making animations is in graphics.R
 sp4_tr_detour_gt <- readRDS("detour/sp4_tr_detour_gt.rds")
@@ -823,6 +839,7 @@ sp4_tr_detour_gt
 #| fig-height: 8
 #| fig-align: center
 #| out-width: 100%
+#| fig-alt: "Similar to the previous animation, except that the sequence of projections shown moves towards a reasonably separation of the two classes."
 #| echo: false
 sp4_tr_detour <- readRDS("detour/sp4_tr_detour.rds")
 sp4_tr_detour
@@ -845,6 +862,7 @@ sp4_tr_detour
 #| fig-height: 8
 #| fig-align: center
 #| out-width: 100%
+#| fig-alt: "Similar to the previous animation, except that now the points are the full grid and they are coloured by the predicted class. The sequence of projections follows a guided tour, so the last one shows a reasonable separation of the two classes."
 #| echo: false
 sp4_true_detour <- readRDS("detour/sp4_true_detour.rds")
 sp4_true_detour
@@ -863,6 +881,7 @@ sp4_true_detour
 #| fig-height: 8
 #| fig-align: center
 #| out-width: 100%
+#| fig-alt: "Similar to the previous animation, except that now we are viewing a slice through the middle of the data. The difference between the two groups is slightly cleaner."
 #| echo: false
 sp4_true_detour_slice <- readRDS("detour/sp4_true_detour_slice.rds")
 sp4_true_detour_slice
@@ -922,6 +941,7 @@ Location of points in the training data
 #| fig-height: 8
 #| fig-align: center
 #| out-width: 100%
+#| fig-alt: "This is the animation of the training data with points 1 and 2 highlighted. We can see that similar to the 2D example they both are located close to the border between classes."
 #| echo: false
 sp4_tr_detour_pts <- readRDS("detour/sp4_tr_detour_pts.rds")
 sp4_tr_detour_pts
@@ -935,6 +955,23 @@ sp4_tr_detour_pts
 :::: {.columns}
 ::: {.column}
 
+[Point 1, radial tour, $x_1$ removed.]{.f70}
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| fig-align: center
+#| out-width: 100%
+#| fig-alt: "This is the animation of the fitted data, starting from the best projection to show the two classes, so far. The predictor x1 is rotated out of the projection, and it does little to change the boundary."
+#| echo: false
+sp4_fitted_detour_x1 <- readRDS("detour/sp4_fitted_detour_x1.rds")
+sp4_fitted_detour_x1
+```
+
+:::
+::: {.column}
+
+
 [Point 1, radial tour, $x_2$ removed.]{.f70}
 
 ```{r}
@@ -942,25 +979,10 @@ sp4_tr_detour_pts
 #| fig-height: 8
 #| fig-align: center
 #| out-width: 100%
+#| fig-alt: "This is the animation of the fitted data, starting from the best projection to show the two classes, so far. The predictor x2 is rotated out of the projection, and the boundary disappears."
 #| echo: false
-sp4_d1_detour_x2 <- readRDS("detour/sp4_d1_detour_x2.rds")
-sp4_d1_detour_x2
-```
-
-:::
-::: {.column}
-
-
-[Point 1, radial tour, $x_4$ removed.]{.f70}
-
-```{r}
-#| fig-width: 10
-#| fig-height: 8
-#| fig-align: center
-#| out-width: 100%
-#| echo: false
-sp4_d1_detour_x4 <- readRDS("detour/sp4_d1_detour_x4.rds")
-sp4_d1_detour_x4
+sp4_fitted_detour_x2 <- readRDS("detour/sp4_fitted_detour_x2.rds")
+sp4_fitted_detour_x2
 ```
 
 :::
@@ -979,6 +1001,7 @@ sp4_d1_detour_x4
 #| fig-height: 8
 #| fig-align: center
 #| out-width: 100%
+#| fig-alt: "This is the animation of the fitted data, in a very local neighbourhood of point1, starting from the best projection to show the two classes, so far. The boundary here looks quite linear. The predictor x2 is rotated out of the projection, and the boundary disappears."
 #| echo: false
 sp4_d1_detour_x2 <- readRDS("detour/sp4_d1_detour_x2.rds")
 sp4_d1_detour_x2
@@ -996,6 +1019,7 @@ sp4_d1_detour_x2
 #| fig-height: 8
 #| fig-align: center
 #| out-width: 100%
+#| fig-alt: "This is the animation of the fitted data, in a very local neighbourhood of point1, starting from the best projection to show the two classes, so far. The boundary here looks quite linear. The predictor x2 is rotated out of the projection, and the boundary doesn't change much."
 #| echo: false
 sp4_d1_detour_x4 <- readRDS("detour/sp4_d1_detour_x4.rds")
 sp4_d1_detour_x4
@@ -1018,6 +1042,7 @@ sp4_d1_detour_x4
 #| fig-height: 8
 #| fig-align: center
 #| out-width: 100%
+#| fig-alt: "This is the animation of the fitted data, in a very local neighbourhood of point1, starting from the best projection to show the two classes, so far. The boundary here looks quite linear. The predictor x2 is rotated out of the projection, and the boundary doesn't change much."
 #| echo: false
 sp4_d2_detour_x2 <- readRDS("detour/sp4_d2_detour_x2.rds")
 sp4_d2_detour_x2
@@ -1035,6 +1060,7 @@ sp4_d2_detour_x2
 #| fig-height: 8
 #| fig-align: center
 #| out-width: 100%
+#| fig-alt: "This is the animation of the fitted data, in a very local neighbourhood of point1, starting from the best projection to show the two classes, so far. The boundary here looks quite linear. The predictor x4 is rotated out of the projection, and the boundary disappears."
 #| echo: false
 sp4_d2_detour_x4 <- readRDS("detour/sp4_d2_detour_x4.rds")
 sp4_d2_detour_x4
@@ -1240,7 +1266,7 @@ This is [word]{.fragment .bounce} bounce.
 :::
 ::: {.column width="40%"}
 
-![](images/IMG_0124_mulga Gt Victoria Desert.jpeg){width="500px" fig.align="center"}
+![](images/IMG_0124_mulga Gt Victoria Desert.jpeg){width="500px" fig-align="center"}
 
 [Photo: Mulga, Great Victoria Desert, courtesy of Lyn Cook]{.f50}
 
